@@ -18,6 +18,8 @@ include(MacroLogFeature)
 
 find_package(OpenNI2 REQUIRED)
 macro_log_feature(OPENNI2_FOUND "OpenNI2" "Required to build ${PROJECT_NAME}" "https://github.com/OpenNI/OpenNI2" TRUE "2")
+#set(OPENNI2_DIR "c:/Program Files/OpenNI2" CACHE FILEPATH "OpenNI2 SDK directory")
+
 find_package(ZED 3)
 macro_log_feature(ZED_FOUND "ZED SDK" "Required to build ${PROJECT_NAME}" "https://www.stereolabs.com" TRUE "3")
 find_package(CUDA ${ZED_CUDA_VERSION} EXACT)
@@ -29,6 +31,7 @@ macro_display_feature_log()
 ### HEADER FILES
 ###########################################################################
 set (HDR_FILES
+    include/zedtools.hpp
     include/zedstream.hpp
     include/zeddevice.hpp
     include/zeddriver.hpp
@@ -62,6 +65,7 @@ if(MSVC)
     set (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /SUBSYSTEM:WINDOWS")
 endif()
 
+include_directories(${OPENNI2_INCLUDE_DIRS})
 include_directories(${CUDA_INCLUDE_DIRS})
 include_directories(${ZED_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
