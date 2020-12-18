@@ -9,17 +9,23 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 
 include(MacroLogFeature)
 
-set(OPENNI2_DIR "" CACHE FILEPATH "OpenNI2 SDK directory")
+set(OPENNI2_DIR "" CACHE PATH "Root of the OpenNI2 SDK directory")
 
-if(EXISTS ${OPENNI2_DIR})
-    message("OpenNI2 folder: ${OPENNI2_DIR}")
+message("-----------------------------------------------------------------------------")
+if(EXISTS ${OPENNI2_DIR}/Include)
+
+    message(STATUS "OpenNI2 folder: ${OPENNI2_DIR}")
     set(OPENNI2_INCLUDE_DIRS ${OPENNI2_DIR}/Include)
+    message(STATUS "OpenNI2 include folder: ${OPENNI2_INCLUDE_DIRS}")
     #set(OPENNI2_LIB_DIRS ${OPENNI2_DIR}/Redist) TO BE USED WITH OCCIPITAL PRECOMPILED OpenNI2
     set(OPENNI2_LIB_DIRS ${OPENNI2_DIR}/Bin/x64-Debug) #TO BE USED WITH OCCIPITAL PRECOMPILED OpenNI2 in Debug mode
+    message(STATUS "OpenNI2 libraries folder: ${OPENNI2_LIB_DIRS}")
     set(OPENNI2_LIBRARIES ${OPENNI2_LIB_DIRS}/libOpenNI2.so)
+    message(STATUS "OpenNI2 library file: ${OPENNI2_LIBRARIES}")
 else()
     message( FATAL_ERROR "Please set the path to OpenNI2 root folder -> '-DOPENNI2_DIR='path-to-your-openni2-installation-folder'" )
 endif()
+message("-----------------------------------------------------------------------------")
 
 find_package(ZED 3)
 macro_log_feature(ZED_FOUND "ZED SDK" "Required to build ${PROJECT_NAME}" "https://www.stereolabs.com" TRUE "3")

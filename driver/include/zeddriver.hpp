@@ -45,6 +45,8 @@ private:
     std::mutex mStateMutex;
     std::mutex mDevicesMutex;
 
+    sl::Camera mZed;
+
     std::vector<sl::DeviceProperties> mZedDevList;
 
     std::map<unsigned int, std::shared_ptr<ZedDevice>> mDevices;

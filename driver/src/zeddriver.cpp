@@ -1,6 +1,6 @@
 #include "zeddriver.hpp"
-
 #include "zedtools.hpp"
+
 
 namespace oni { namespace driver {
 
@@ -45,16 +45,64 @@ OniStatus ZedDriver::initialize(
         return ONI_STATUS_ERROR;
     }
 
-    if(enumerateDevices()>0)
+    zedLogDebug("initialized");
+
+    enumerateDevices();
+
+    for(size_t i=0; i<mZedDevList.size(); i++)
     {
-        zedLogDebug("initialized");
-        return ONI_STATUS_OK;
+        if(mZedDevList[i].camera_state==sl::CAMERA_STATE::NOT_AVAILABLE)
+        {
+            continue;
+        }
+
+        OniDeviceInfo info;
+
+        std::string uri = std::to_string(mZedDevList[i].serial_number);
+        uri += '\0';
+        strncpy(info.uri, uri.c_str(), uri.size());
+
+#ifdef EMULATE_PRIMESENSE_HARDWARE
+        zedLogDebug("Hack! Emulating PrimeSense device to be able to use NiTE");
+        strncpy(info.name, "PS1080", sizeof(info.name) - 1);
+        strncpy(info.vendor, "PrimeSense", sizeof(info.vendor) - 1);
+        info.usbVendorId = 7463;
+        info.usbProductId = 1537;
+#else
+        sl::String camModel = sl::toString(mZedDevList[i].camera_model);
+        strncpy(info.name, camModel.c_str(), camModel.size());        
+        std::string vendor = "Stereolabs";
+        vendor += '\0';
+        strncpy(info.vendor, vendor.c_str(), vendor.size());
+
+        info.usbVendorId = SL_USB_VENDOR;
+
+        switch(mZedDevList[i].camera_model)
+        {
+        case sl::MODEL::ZED:
+            info.usbProductId = SL_USB_PROD_ZED;
+            break;
+        case sl::MODEL::ZED_M:
+            info.usbProductId = SL_USB_PROD_ZED_M;
+            break;
+        case sl::MODEL::ZED2:
+            info.usbProductId = SL_USB_PROD_ZED_2;
+            break;
+        default:
+            zedLogError("Camera model not valid");
+            return ONI_STATUS_ERROR;
+        }
+#endif
+
+        zedLogDebug("Device found: %s [%u] - Id: %d",
+                    sl::toString(mZedDevList[i].camera_model).c_str(),
+                    mZedDevList[i].serial_number, mZedDevList[i].id );
+
+        // Notify OpenNI that a ZED is available
+        deviceConnected(&info);
     }
 
-    zedLogError( "No ZED device detected.");
-
-    shutdown();
-    return ONI_STATUS_ERROR;
+    return ONI_STATUS_OK;
 }
 
 
@@ -82,10 +130,9 @@ DeviceBase* ZedDriver::deviceOpen(const char* uri, const char* mode)
         serial_number = std::stoi( std::string(uri));
     }
 
-    zedLogDebug("Serial Number: %u", serial_number);
+    zedLogDebug("Opening camera with serial Number: %u", serial_number);
 
     std::vector<sl::DeviceProperties>::iterator it;
-    bool found = false;
 
     for( it=mZedDevList.begin(); it!=mZedDevList.end(); it++)
     {
@@ -111,11 +158,9 @@ DeviceBase* ZedDriver::deviceOpen(const char* uri, const char* mode)
         else
         {
             mDevices[prop.serial_number] = zedDevice;
-            found = true;
 
-            zedLogDebug("Camera model:\t%s", sl::toString(prop.camera_model).c_str());
-            zedLogDebug("Camera serial number:\t%u", prop.serial_number);
-            zedLogDebug("Camera ID:\t%d", prop.id);
+            zedLogDebug("Device opened: %s [%u] - Id: %d",
+                        sl::toString(prop.camera_model).c_str(), prop.serial_number, prop.id );
 
             return zedDevice.get();
         }
@@ -153,5 +198,4 @@ void ZedDriver::disableFrameSync(void* frameSyncGroup)
 
 
 
-} // namespace driver
-              } // namespace oni
+} } // namespace driver // namespace oni

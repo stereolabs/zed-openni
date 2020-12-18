@@ -5,19 +5,17 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/OpenNI2/Drivers)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/OpenNI2/Drivers)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
-set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-message("SOURCE_DIR: ${SOURCE_DIR}")
 
 include_directories(${OPENNI2_INCLUDE_DIRS})
-include_directories(${SOURCE_DIR}/Common/)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Common/)
 
 ########################################################################
 ### Common Code
 FILE(GLOB_RECURSE COMMON_HDR_FILES
-    ${SOURCE_DIR}/Common/*.h ${SOURCE_DIR}/Common/*.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Common/*.h ${CMAKE_CURRENT_SOURCE_DIR}/Common/*.hpp
 )
 FILE(GLOB_RECURSE COMMON_SRC_FILES
-    ${SOURCE_DIR}/Common/*.c ${SOURCE_DIR}/Common/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Common/*.c ${CMAKE_CURRENT_SOURCE_DIR}/Common/*.cpp
 )
 
 ########################################################################
@@ -25,11 +23,11 @@ FILE(GLOB_RECURSE COMMON_SRC_FILES
 set(EX1_NAME ZEDSimpleViewer)
 
 FILE(GLOB_RECURSE EX1_HDR_FILES
-    ${SOURCE_DIR}/${EX1_NAME}/*.h ${SOURCE_DIR}/${EX1_NAME}/*.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/${EX1_NAME}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/${EX1_NAME}/*.hpp
 )
 
 FILE(GLOB_RECURSE EX1_SRC_FILES
-    ${SOURCE_DIR}/${EX1_NAME}/*.c ${SOURCE_DIR}/${EX1_NAME}/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/${EX1_NAME}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/${EX1_NAME}/*.cpp
 )
 
 add_executable(${EX1_NAME}
