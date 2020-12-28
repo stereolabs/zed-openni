@@ -1,6 +1,8 @@
 cmake_minimum_required (VERSION 3.8.0)
 project (zed-openni)
 
+set(CMAKE_CXX_STANDARD 14)
+
 ###########################################################################
 ### DEPENDENCIES
 ###########################################################################
@@ -36,7 +38,7 @@ macro_display_feature_log()
 
 if(UNIX)
     message(STATUS "[${PROJECT_NAME}] OS: Unix")
-    add_definitions(-std=c++11 -Wno-deprecated-declarations -Wno-write-strings -no-pie)
+    add_definitions(-std=c++14 -Wno-deprecated-declarations -Wno-write-strings -no-pie)
 endif(UNIX)
 
 ###########################################################################

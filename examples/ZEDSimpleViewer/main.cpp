@@ -45,7 +45,7 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	rc = depth.create(device, openni::SENSOR_DEPTH);
+    rc = depth.create(device, openni::SENSOR_DEPTH);
 	if (rc == openni::STATUS_OK)
 	{
 		rc = depth.start();

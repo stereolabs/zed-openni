@@ -14,9 +14,7 @@ class ZedDevice : public DeviceBase {
 
 public:
     ZedDevice(class ZedDriver* driver, sl::DeviceProperties& prop);
-    virtual ~ZedDevice();
-
-    OniStatus initialize(){ zedLogFunc(""); return ONI_STATUS_OK;}
+    virtual ~ZedDevice();    
 
     virtual OniStatus getSensorInfoList(OniSensorInfo** pSensorInfos, int* numSensors) override;
 
@@ -24,11 +22,27 @@ public:
     virtual void destroyStream(StreamBase* pStream){zedLogFunc("");}
 
 protected:
+    OniStatus initialize();
+    OniStatus initializeStreams();
+
+    void grabThreadFunc();
+
+protected:
     std::mutex mStateMutex;
-    std::mutex mDevicesMutex;
+    std::mutex mStreamsMutex;
 
     OniDeviceInfo mInfo;
     std::vector<OniSensorInfo> mSensorInfo;
+
+    std::unique_ptr<std::thread> mGrabThread;
+
+    bool mThreadRunning=false;
+    bool mStopThread=false;
+
+    sl::Camera mZed;
+    sl::DeviceProperties mZedProp;
+
+    ZedDriver* mDriver = nullptr;
 };
 
 } } // namespace driver // namespace oni
