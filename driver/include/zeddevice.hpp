@@ -1,6 +1,8 @@
 #ifndef ZEDDEVICE_HPP
 #define ZEDDEVICE_HPP
 
+#include <list>
+
 #include <Driver/OniDriverAPI.h>
 #include <sl/Camera.hpp>
 
@@ -18,11 +20,12 @@ public:
 
     virtual OniStatus getSensorInfoList(OniSensorInfo** pSensorInfos, int* numSensors) override;
 
-    virtual StreamBase* createStream(OniSensorType){zedLogFunc("");}
-    virtual void destroyStream(StreamBase* pStream){zedLogFunc("");}
+    virtual StreamBase* createStream(OniSensorType) override;
+    virtual void destroyStream(StreamBase* pStream) override;
 
 protected:
     OniStatus initialize();
+    void shutdown();
     OniStatus initializeStreams();
 
     void grabThreadFunc();
@@ -43,6 +46,9 @@ protected:
     sl::DeviceProperties mZedProp;
 
     ZedDriver* mDriver = nullptr;
+
+    std::list<std::shared_ptr<ZedStream>> mAvailableStreams;
+    std::list<std::shared_ptr<ZedStream>> mCreatedStreams;
 };
 
 } } // namespace driver // namespace oni

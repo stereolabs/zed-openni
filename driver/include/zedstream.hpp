@@ -1,25 +1,36 @@
 #ifndef ZEDSTREAM_HPP
 #define ZEDSTREAM_HPP
+
 #include <Driver/OniDriverAPI.h>
 
-#include <sl/Camera.hpp>
+#include "zedtools.hpp"
 
-class ZedStream : public oni::driver::StreamBase {
+namespace oni { namespace driver {
+
+
+class ZedStream : public StreamBase {
     friend class ZedDevice;
 
 public:
-    ZedStream();
+    ZedStream(OniSensorType sensorType);
     virtual ~ZedStream();
 
-    virtual OniStatus setProperty(int propertyId, const void* data, int dataSize);
+protected:
+    ZedStream(const ZedStream&);
+    void operator=(const ZedStream&);
 
-
+    void shutdown();
 
 private:
-    sl::Camera mZed;
 
     class ZedDevice* mDevice;
 
+    bool mEnabled = false;
+
+    int mZedType;
+    OniSensorType mOniType;
 };
+
+} } // namespace driver // namespace oni
 
 #endif

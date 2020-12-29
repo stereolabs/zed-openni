@@ -14,6 +14,26 @@ ZedDevice::ZedDevice(class ZedDriver* driver, sl::DeviceProperties& prop)
 ZedDevice::~ZedDevice()
 {
     zedLogDebug("~Rs2Device");
+
+    shutdown();
+}
+
+void ZedDevice::shutdown()
+{
+    // TODO
+
+    zedLogFunc("");
+
+    std::lock_guard<std::mutex> lock(mStateMutex);
+
+    if(mThreadRunning)
+    {
+        mStopThread = true;
+        if( mGrabThread->joinable() )
+        {
+            mGrabThread->join();
+        }
+    }
 }
 
 OniStatus ZedDevice::getSensorInfoList(OniSensorInfo** pSensorInfos, int* numSensors)
@@ -28,6 +48,18 @@ OniStatus ZedDevice::getSensorInfoList(OniSensorInfo** pSensorInfos, int* numSen
     return ONI_STATUS_OK;
 }
 
+StreamBase* ZedDevice::createStream(OniSensorType)
+{
+    zedLogFunc("");
+
+    return nullptr;
+}
+
+void ZedDevice::destroyStream(StreamBase* pStream)
+{
+    zedLogFunc("");
+}
+
 void ZedDevice::grabThreadFunc()
 {
     zedLogFunc("");
@@ -35,6 +67,9 @@ void ZedDevice::grabThreadFunc()
 
     mThreadRunning=true;
     mStopThread=false;
+
+    sl::ERROR_CODE ret;
+    sl::RuntimeParameters rtParams; // TODO LOAD RT PARAMETERS
 
     while(true)
     {
@@ -44,7 +79,12 @@ void ZedDevice::grabThreadFunc()
             break;
         }
 
-
+        ret = mZed.grab(rtParams);
+        if(ret!=sl::ERROR_CODE::SUCCESS)
+        {
+            zedLogError("ZED Grab error: %s", sl::toString(ret).c_str());
+            break; // TODO Improve grab error handling
+        }
     };
 
     zedLogDebug("Grab thread finished");
@@ -99,7 +139,7 @@ OniStatus ZedDevice::initializeStreams()
 {
     // TODO
 
-    zedLogFunc("TODO");
+    zedLogFunc("");
 
     return ONI_STATUS_OK;
 }
