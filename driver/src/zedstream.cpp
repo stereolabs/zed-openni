@@ -32,23 +32,24 @@ OniStatus ZedStream::initialize(std::shared_ptr<ZedDevice> device, int sensorId,
 
     memset(&mVideoMode, 0, sizeof(mVideoMode));
 
-    ZedStreamProfileInfo spi;
-
     for (auto iter = mProfiles.begin(); iter != mProfiles.end(); ++iter)
     {
         ZedStreamProfileInfo& sp = *iter;
 
         if(sp.streamId==streamId)
         {
-            spi = sp;
+            mProfile = sp;
             break;
         }
     }
 
-    mVideoMode.fps = spi.framerate;
-    mVideoMode.pixelFormat = spi.format;
-    mVideoMode.resolutionX = spi.width;
-    mVideoMode.resolutionY = spi.height;
+    mFovX = device->mZed.getCameraInformation().calibration_parameters.left_cam.h_fov;
+    mFovY = device->mZed.getCameraInformation().calibration_parameters.left_cam.v_fov;
+
+    mVideoMode.fps = mProfile.framerate;
+    mVideoMode.pixelFormat = mProfile.format;
+    mVideoMode.resolutionX = mProfile.width;
+    mVideoMode.resolutionY = mProfile.height;
 
     if (mOniType == ONI_SENSOR_DEPTH)
     {
@@ -200,51 +201,57 @@ OniStatus ZedStream::getProperty(int propertyId, void* data, int* dataSize)
 
     switch (propertyId)
     {
-//		case ONI_STREAM_PROPERTY_CROPPING:
-//		{
-//			if (data && dataSize && *dataSize == sizeof(OniCropping))
-//			{
-//				OniCropping value;
-//				value.enabled = false;
-//				value.originX = 0;
-//				value.originY = 0;
-//				value.width = m_videoMode.resolutionX;
-//				value.height = m_videoMode.resolutionY;
-//				*((OniCropping*)data) = value;
-//				return ONI_STATUS_OK;
-//			}
-//			break;
-//		}
+        case ONI_STREAM_PROPERTY_CROPPING:
+        {
+            if (data && dataSize && *dataSize == sizeof(OniCropping))
+            {
+                OniCropping value;
+                value.enabled = false;
+                value.originX = 0;
+                value.originY = 0;
+                value.width = mVideoMode.resolutionX;
+                value.height = mVideoMode.resolutionY;
+                *((OniCropping*)data) = value;
+                zedLogFunc("\t Cropping: (%d,%d) %dx%d",value.originX,value.originY,value.width,value.height);
+                return ONI_STATUS_OK;
+            }
+            break;
+        }
 
-//		case ONI_STREAM_PROPERTY_HORIZONTAL_FOV:
-//		{
-//			if (data && dataSize && *dataSize == sizeof(float))
-//			{
-//				*((float*)data) = m_fovX * 0.01745329251994329576923690768489f;
-//				return ONI_STATUS_OK;
-//			}
-//			break;
-//		}
+        case ONI_STREAM_PROPERTY_HORIZONTAL_FOV:
+        {
+            if (data && dataSize && *dataSize == sizeof(float))
+            {
+                float val = mFovX * 0.01745329251994329576923690768489f;
+                *((float*)data) = val;
+                zedLogFunc("\t H_FOV: %g",val);
+                return ONI_STATUS_OK;
+            }
+            break;
+        }
 
-//		case ONI_STREAM_PROPERTY_VERTICAL_FOV:
-//		{
-//			if (data && dataSize && *dataSize == sizeof(float))
-//			{
-//				*((float*)data) = m_fovY * 0.01745329251994329576923690768489f;
-//				return ONI_STATUS_OK;
-//			}
-//			break;
-//		}
+        case ONI_STREAM_PROPERTY_VERTICAL_FOV:
+        {
+            if (data && dataSize && *dataSize == sizeof(float))
+            {
+                float val = mFovY * 0.01745329251994329576923690768489f;
+                *((float*)data) = val;
+                zedLogFunc("\t V_FOV: %g",val);
+                return ONI_STATUS_OK;
+            }
+            break;
+        }
 
-//		case ONI_STREAM_PROPERTY_VIDEO_MODE:
-//		{
-//			if (data && dataSize && *dataSize == sizeof(OniVideoMode))
-//			{
-//				*((OniVideoMode*)data) = m_videoMode;
-//				return ONI_STATUS_OK;
-//			}
-//			break;
-//		}
+        case ONI_STREAM_PROPERTY_VIDEO_MODE:
+        {
+            if (data && dataSize && *dataSize == sizeof(OniVideoMode))
+            {
+                *((OniVideoMode*)data) = mVideoMode;
+                zedLogFunc("\t OniVideoMode: Format: %d, FPS: %d, %dx%d",(int)mVideoMode.pixelFormat,mVideoMode.fps, mVideoMode.resolutionX, mVideoMode.resolutionY);
+                return ONI_STATUS_OK;
+            }
+            break;
+        }
 
 //		case ONI_STREAM_PROPERTY_MAX_VALUE:
 //		{
@@ -266,15 +273,17 @@ OniStatus ZedStream::getProperty(int propertyId, void* data, int* dataSize)
 //			break;
 //		}
 
-//		case ONI_STREAM_PROPERTY_STRIDE:
-//		{
-//			if (data && dataSize && *dataSize == sizeof(int))
-//			{
-//				*((int*)data) = m_videoMode.resolutionX * getPixelFormatBytes(convertPixelFormat(m_videoMode.pixelFormat));
-//				return ONI_STATUS_OK;
-//			}
-//			break;
-//		}
+        case ONI_STREAM_PROPERTY_STRIDE:
+        {
+            if (data && dataSize && *dataSize == sizeof(int))
+            {
+                int val = mVideoMode.resolutionX * getPixelFormatBytes(mVideoMode.pixelFormat);
+                *((int*)data) = val;
+                zedLogFunc("\t Stride: %d",val);
+                return ONI_STATUS_OK;
+            }
+            break;
+        }
 
 //		case ONI_STREAM_PROPERTY_MIRRORING:
 //		{

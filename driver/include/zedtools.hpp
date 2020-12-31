@@ -16,6 +16,8 @@ static const uint16_t SL_USB_PROD_ZED = 0xf582;      //!< CBS ZED Firmware Produ
 static const uint16_t SL_USB_PROD_ZED_M = 0xf682;    //!< CBS ZED-M Firmware Product ID
 static const uint16_t SL_USB_PROD_ZED_2 = 0xf780;    //!< CBS ZED 2 Firmware Product ID
 
+#define ONI_MAX_DEPTH 10000
+
 namespace oni { namespace driver {
 
 inline std::string streamType2Str(OniSensorType type)
@@ -67,6 +69,25 @@ inline OniSensorType convertStreamType(int type)
         zedLogError("ZED Sensor type not correct: %d", type);
         return (OniSensorType)-1;
     }
+}
+
+inline int getPixelFormatBytes(OniPixelFormat type)
+{
+    switch (type)
+    {
+    // Depth
+    case ONI_PIXEL_FORMAT_DEPTH_1_MM:
+        return 2;
+
+    // Color
+    case ONI_PIXEL_FORMAT_RGB888:
+        return 3;
+    case ONI_PIXEL_FORMAT_GRAY8:
+        return 1;
+    }
+
+    zedLogError("Invalid OniPixelFormat=%d", (int)type);
+    return 0;
 }
 
 } } // namespace driver // namespace oni

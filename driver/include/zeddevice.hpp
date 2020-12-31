@@ -13,6 +13,7 @@ namespace oni { namespace driver {
 
 class ZedDevice : public DeviceBase, public std::enable_shared_from_this<ZedDevice> {
     friend class ZedDriver;
+    friend class ZedStream;
 
 public:
     ZedDevice(class ZedDriver* driver, sl::DeviceProperties& prop);
@@ -20,7 +21,7 @@ public:
 
     virtual OniStatus getSensorInfoList(OniSensorInfo** pSensorInfos, int* numSensors) override;
 
-    virtual StreamBase* createStream(OniSensorType) override;
+    virtual StreamBase* createStream(OniSensorType sensorType) override;
     virtual void destroyStream(StreamBase* pStream) override;
 
     void updateConfiguration();
@@ -32,8 +33,15 @@ protected:
     OniStatus addStream(OniSensorType sensorType, int sensorId, int streamId, std::vector<ZedStreamProfileInfo> *profiles);
     void findStreamProfiles(std::vector<ZedStreamProfileInfo>* dst, OniSensorType sensorType, int streamId);
 
+    void publishFrame(std::shared_ptr<ZedStream> stream, int frameId);
 
     void grabThreadFunc();
+
+    OniStatus startCamera();
+    void stopCamera();
+    void restartCamera();
+    bool hasEnabledStreams();
+
 
 protected:
     std::mutex mStateMutex;

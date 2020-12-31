@@ -11,7 +11,7 @@ class ZedDevice;
 
 struct ZedStreamProfileInfo
 {
-    sl::RESOLUTION res;
+    sl::RESOLUTION zedRes;
     int sensorId;
     int streamId;
     OniSensorType streamType;
@@ -34,20 +34,22 @@ public:
     virtual OniStatus getProperty(int propertyId, void* data, int* dataSize) override;
     virtual OniBool isPropertySupported(int propertyId) override;
 
+    inline bool isEnabled() const { return mEnabled; }
+
     virtual OniStatus start();
     virtual void stop();
 
     inline std::shared_ptr<ZedDevice> getDevice() { return mDevice; }
 
     inline OniSensorType getOniType() const { return mOniType; }
+    inline OniVideoMode getVideoMode() const { return mVideoMode; }
+    inline ZedStreamProfileInfo getProfile() const { return mProfile; }
     inline int getSensorId() const { return mSensorId; }
     inline int getStreamId() const { return mStreamId; }
 
 protected:
     ZedStream(const ZedStream&);
     void operator=(const ZedStream&);
-
-    ZedStreamProfileInfo* getCurrentProfile();
 
     OniStatus initialize(std::shared_ptr<ZedDevice> device, int sensorId,
                          int streamId, std::vector<ZedStreamProfileInfo>* profiles);
@@ -63,11 +65,15 @@ private:
     int mStreamId;
     bool mEnabled = false;
 
+    ZedStreamProfileInfo mProfile;
     std::vector<ZedStreamProfileInfo> mProfiles;
 
     int mZedType;
     OniSensorType mOniType;
     OniVideoMode mVideoMode;
+
+    float mFovX;
+    float mFovY;
 
     std::vector<uint16_t> m_s2d;
     std::vector<uint16_t> m_d2s;

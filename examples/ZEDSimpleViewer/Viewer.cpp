@@ -33,8 +33,10 @@
 
 #include "OniSampleUtilities.h"
 
-#define GL_WIN_SIZE_X	1280
-#define GL_WIN_SIZE_Y	1024
+#include <iostream>
+
+#define GL_WIN_SIZE_X	2208/2
+#define GL_WIN_SIZE_Y	1242/2
 #define TEXTURE_SIZE	512
 
 #define DEFAULT_DISPLAY_MODE	DISPLAY_MODE_DEPTH
@@ -159,9 +161,13 @@ void SampleViewer::display()
 	switch (changedIndex)
 	{
 	case 0:
-		m_depthStream.readFrame(&m_depthFrame); break;
+        m_depthStream.readFrame(&m_depthFrame);
+        std::cout << "Received Depth" << std::endl;
+        break;
 	case 1:
-		m_colorStream.readFrame(&m_colorFrame); break;
+        m_colorStream.readFrame(&m_colorFrame);
+        std::cout << "Received Color" << std::endl;
+        break;
 	default:
 		printf("Error in wait\n");
 	}

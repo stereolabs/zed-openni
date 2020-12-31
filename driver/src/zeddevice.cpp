@@ -48,16 +48,42 @@ OniStatus ZedDevice::getSensorInfoList(OniSensorInfo** pSensorInfos, int* numSen
     return ONI_STATUS_OK;
 }
 
-StreamBase* ZedDevice::createStream(OniSensorType)
+StreamBase* ZedDevice::createStream(OniSensorType sensorType)
 {
-    zedLogFunc("");
+    zedLogFunc("sensorType=%d", (int)sensorType);
+
+    std::lock_guard<std::mutex> lock(mStreamsMutex);
+
+    for (auto iter = mStreams.begin(); iter != mStreams.end(); ++iter)
+    {
+        std::shared_ptr<ZedStream> streamObj = *iter;
+        if (streamObj->getOniType() == sensorType)
+        {
+            mCreatedStreams.push_back(streamObj);
+            mStreams.remove(streamObj);
+            return streamObj.get();
+        }
+    }
 
     return nullptr;
 }
 
-void ZedDevice::destroyStream(StreamBase* pStream)
+void ZedDevice::destroyStream(StreamBase* streamBase)
 {
-    zedLogFunc("");
+    zedLogFunc("ptr=%p", streamBase);
+
+    if(streamBase)
+    {
+        std::lock_guard<std::mutex> lock(mStreamsMutex);
+
+        ZedStream* streamObj = (ZedStream*)streamBase;
+        std::shared_ptr<ZedStream> streamPtr(streamObj);
+
+        streamPtr->stop();
+
+        mStreams.push_back(streamPtr);
+        mCreatedStreams.remove(streamPtr);
+    }
 }
 
 void ZedDevice::updateConfiguration()
@@ -78,6 +104,10 @@ void ZedDevice::grabThreadFunc()
     sl::ERROR_CODE ret;
     sl::RuntimeParameters rtParams; // TODO LOAD RT PARAMETERS
 
+    int frameCount=0;
+    int noStreamCount=0;
+    int configId = 0;
+
     while(true)
     {
         if(mStopThread)
@@ -86,16 +116,240 @@ void ZedDevice::grabThreadFunc()
             break;
         }
 
+        /*const int curConfigId = mConfigId;
+        if (configId != curConfigId) // configuration changed since last tick
+        {
+            configId = curConfigId;
+            restartCamera();
+        }*/
+
         ret = mZed.grab(rtParams);
         if(ret!=sl::ERROR_CODE::SUCCESS)
         {
             zedLogError("ZED Grab error: %s", sl::toString(ret).c_str());
             break; // TODO Improve grab error handling
         }
+
+        if(!hasEnabledStreams())
+        {
+            zedLogDebug("No Enabled Streams #%d", ++noStreamCount);
+            continue;
+        }
+
+        zedLogDebug("Grabbed #%d", ++frameCount);
+
+        for (auto iter = mCreatedStreams.begin(); iter != mCreatedStreams.end(); ++iter)
+        {
+            publishFrame(*iter, frameCount );
+        }
+
     };
 
     zedLogDebug("Grab thread finished");
     mThreadRunning = false;
+}
+
+void ZedDevice::publishFrame(std::shared_ptr<ZedStream> stream, int frameId)
+{
+    OniSensorType sensType = stream->getOniType();
+
+    sl::Mat zedFrame;
+    sl::ERROR_CODE ret;
+
+    const void* frameData = nullptr;
+
+    switch(sensType)
+    {
+    case ONI_SENSOR_DEPTH:
+        ret = mZed.retrieveMeasure( zedFrame, sl::MEASURE::DEPTH_U16_MM );
+        frameData = zedFrame.getPtr<sl::ushort1>();
+        break;
+    case ONI_SENSOR_COLOR:
+        ret = mZed.retrieveImage( zedFrame, sl::VIEW::LEFT );
+        frameData = zedFrame.getPtr<sl::uchar4>();
+        break;
+    case ONI_SENSOR_IR:
+        ret = mZed.retrieveImage( zedFrame, sl::VIEW::LEFT_GRAY );
+        frameData = zedFrame.getPtr<sl::uchar1>();
+        break;
+    }
+
+    if(ret!=sl::ERROR_CODE::SUCCESS)
+    {
+        zedLogError("Error retrieving ZED frame: %s", sl::toString(ret).c_str());
+        return;
+    }
+
+    ZedStreamProfileInfo spi = stream->getProfile();
+
+    OniFrame* oniFrame;
+    {
+        oniFrame = stream->getServices().acquireFrame();
+        if (!oniFrame)
+        {
+            zedLogError("acquireFrame failed");
+            return;
+        }
+    }
+
+    oniFrame->sensorType = sensType;
+    oniFrame->timestamp = zedFrame.timestamp.getMilliseconds();
+    oniFrame->frameIndex = frameId;
+
+    OniVideoMode mode = stream->getVideoMode();
+
+    oniFrame->width = spi.width;
+    oniFrame->height = spi.height;
+    oniFrame->stride = spi.stride;
+
+    oniFrame->videoMode = mode;
+    oniFrame->croppingEnabled = false;
+    oniFrame->cropOriginX = 0;
+    oniFrame->cropOriginY = 0;
+
+    const size_t frameSize = oniFrame->stride * oniFrame->height;
+
+    if (frameSize != oniFrame->dataSize)
+    {
+        zedLogError("invalid frame: rsSize=%u oniSize=%u", (unsigned int)frameSize, (unsigned int)oniFrame->dataSize);
+        stream->getServices().releaseFrame(oniFrame);
+        return;
+    }
+
+    if(sensType==ONI_SENSOR_IR || sensType==ONI_SENSOR_DEPTH)
+    {
+        memcpy(oniFrame->data, frameData, oniFrame->dataSize);
+
+        if(sensType==ONI_SENSOR_DEPTH)
+        {
+            zedLogDebug("Depth ready");
+        }
+        else
+        {
+            zedLogDebug("Gray ready");
+        }
+        stream->raiseNewFrame(oniFrame);
+    }
+    else if(sensType==ONI_SENSOR_COLOR)
+    {
+        sl::uchar4* bgra = (sl::uchar4*)frameData;
+        uint8_t* ch = (uint8_t*)oniFrame->data;
+
+        int chIdx = -1;
+        for (int i = 0; i < oniFrame->width * oniFrame->height; ++i)
+        {
+            ch[++chIdx] = (*bgra).b;
+            ch[++chIdx] = (*bgra).g;
+            ch[++chIdx] = (*bgra).r;
+            ++bgra;
+        }
+        zedLogDebug("Color ready");
+        stream->raiseNewFrame(oniFrame);
+    }
+    /*else if(sensType==ONI_SENSOR_DEPTH)
+    {
+        // HACK: clamp depth to OpenNI hardcoded max value
+
+        uint16_t* zedDepth = (uint16_t*)frameData;
+        uint16_t* oniDepth = (uint16_t*)oniFrame->data;
+        for (int i = 0; i < oniFrame->width * oniFrame->height; ++i)
+        {
+            if (*zedDepth >= ONI_MAX_DEPTH)
+            {
+                *oniDepth = ONI_MAX_DEPTH - 1;
+            }
+            else
+            {
+                *oniDepth = *zedDepth;
+            }
+            std::cout << *oniDepth << " ";
+            ++zedDepth;
+            ++oniDepth;
+        }
+        zedLogDebug("Depth ready");
+    }*/
+
+    stream->getServices().releaseFrame(oniFrame);
+}
+
+OniStatus ZedDevice::startCamera()
+{
+    zedLogFunc("");
+
+    if(!hasEnabledStreams())
+    {
+        zedLogError("No available streams");
+        return ONI_STATUS_ERROR;
+    }
+
+    // ----> Retrieve configuration
+    sl::InitParameters initParams;
+
+    std::lock_guard<std::mutex> lock(mStreamsMutex);
+
+    auto iter = mCreatedStreams.begin();
+    std::shared_ptr<ZedStream> streamPtr = *iter;
+
+    initParams.camera_fps = streamPtr->getProfile().framerate;
+    initParams.camera_resolution = streamPtr->getProfile().zedRes;
+    initParams.depth_maximum_distance = 10000.0f;
+    // <---- Retrieve configuration
+
+    // ----> Initialize ZED
+    initParams.input.setFromSerialNumber(mZedProp.serial_number);
+
+    sl::ERROR_CODE ret = mZed.open( initParams );
+    if(ret!=sl::ERROR_CODE::SUCCESS)
+    {
+        zedLogError("Error opening ZED camera: %s", sl::toString(ret).c_str());
+        return ONI_STATUS_ERROR;
+    }
+    zedLogDebug("ZED Camera connected");
+    // <---- Initialize ZED
+
+    return ONI_STATUS_OK;
+}
+
+void ZedDevice::stopCamera()
+{
+    zedLogFunc("");
+
+    if(mZed.isOpened())
+    {
+        mZed.close();
+    }
+}
+
+void ZedDevice::restartCamera()
+{
+    zedLogFunc("");
+
+    stopCamera();
+
+    bool hasStreams;
+    {
+        std::lock_guard<std::mutex> lock(mStreamsMutex);
+        hasStreams = hasEnabledStreams();
+    }
+
+    if (hasStreams && mThreadRunning)
+    {
+        startCamera();
+    }
+}
+
+bool ZedDevice::hasEnabledStreams()
+{
+    for (auto iter = mCreatedStreams.begin(); iter != mCreatedStreams.end(); ++iter)
+    {
+        std::shared_ptr<ZedStream> stream = *iter;
+        if (stream->isEnabled())
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 OniStatus ZedDevice::initialize()
@@ -107,8 +361,10 @@ OniStatus ZedDevice::initialize()
     // ----> Initialize ZED
     sl::InitParameters initParams;
     initParams.input.setFromSerialNumber(mZedProp.serial_number);
-    initParams.camera_fps = 100;
-    initParams.camera_resolution = sl::RESOLUTION::VGA;
+    initParams.camera_fps = 15;
+    initParams.camera_resolution = sl::RESOLUTION::HD2K;
+    initParams.coordinate_units = sl::UNIT::MILLIMETER;
+    initParams.depth_maximum_distance = 9999;
 
     sl::ERROR_CODE ret = mZed.open( initParams );
     if(ret!=sl::ERROR_CODE::SUCCESS)
@@ -130,6 +386,8 @@ OniStatus ZedDevice::initialize()
         }
     }
     // <---- Initialize streams
+
+    mConfigId=0;
 
     try {
         mGrabThread = std::make_unique<std::thread>(&ZedDevice::grabThreadFunc, this);
@@ -411,10 +669,10 @@ OniStatus ZedDevice::initializeStreams()
                 mode.fps = p->framerate;
                 modeId++;
 
-                #if 1
+#if 1
                 zedLogDebug("\ttype=%d sensorId=%d streamId=%d format=%d width=%d height=%d framerate=%d",
-                    (int)p->streamType, (int)p->sensorId, (int)p->streamId, (int)p->format, (int)p->width, (int)p->height, (int)p->framerate);
-                #endif
+                            (int)p->streamType, (int)p->sensorId, (int)p->streamId, (int)p->format, (int)p->width, (int)p->height, (int)p->framerate);
+#endif
             }
 
             mSensorInfo.push_back(info);
