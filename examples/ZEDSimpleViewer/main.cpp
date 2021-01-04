@@ -45,6 +45,21 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
+    rc = color.create(device, openni::SENSOR_COLOR);
+    if (rc == openni::STATUS_OK)
+    {
+        rc = color.start();
+        if (rc != openni::STATUS_OK)
+        {
+            printf("SimpleViewer: Couldn't start color stream:\n%s\n", openni::OpenNI::getExtendedError());
+            color.destroy();
+        }
+    }
+    else
+    {
+        printf("SimpleViewer: Couldn't find color stream:\n%s\n", openni::OpenNI::getExtendedError());
+    }
+
     rc = depth.create(device, openni::SENSOR_DEPTH);
 	if (rc == openni::STATUS_OK)
 	{
@@ -58,24 +73,9 @@ int main(int argc, char** argv)
 	else
 	{
 		printf("SimpleViewer: Couldn't find depth stream:\n%s\n", openni::OpenNI::getExtendedError());
-	}
+    }
 
-	rc = color.create(device, openni::SENSOR_COLOR);
-	if (rc == openni::STATUS_OK)
-	{
-		rc = color.start();
-		if (rc != openni::STATUS_OK)
-		{
-			printf("SimpleViewer: Couldn't start color stream:\n%s\n", openni::OpenNI::getExtendedError());
-			color.destroy();
-		}
-	}
-	else
-	{
-		printf("SimpleViewer: Couldn't find color stream:\n%s\n", openni::OpenNI::getExtendedError());
-	}
-
-	if (!depth.isValid() || !color.isValid())
+    if (!depth.isValid() || !color.isValid())
 	{
 		printf("SimpleViewer: No valid streams. Exiting\n");
 		openni::OpenNI::shutdown();

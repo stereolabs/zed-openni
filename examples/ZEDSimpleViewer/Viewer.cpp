@@ -37,9 +37,9 @@
 
 #define GL_WIN_SIZE_X	2208/2
 #define GL_WIN_SIZE_Y	1242/2
-#define TEXTURE_SIZE	512
+#define TEXTURE_SIZE	32
 
-#define DEFAULT_DISPLAY_MODE	DISPLAY_MODE_DEPTH
+#define DEFAULT_DISPLAY_MODE	DISPLAY_MODE_OVERLAY
 
 #define MIN_NUM_CHUNKS(data_size, chunk_size)	((((data_size)-1) / (chunk_size) + 1))
 #define MIN_CHUNKS_SIZE(data_size, chunk_size)	(MIN_NUM_CHUNKS(data_size, chunk_size) * (chunk_size))
@@ -151,7 +151,7 @@ openni::Status SampleViewer::run()	//Does not return
 void SampleViewer::display()
 {
 	int changedIndex;
-	openni::Status rc = openni::OpenNI::waitForAnyStream(m_streams, 2, &changedIndex);
+    openni::Status rc = openni::OpenNI::waitForAnyStream(m_streams, 2, &changedIndex);
 	if (rc != openni::STATUS_OK)
 	{
 		printf("Wait failed\n");
@@ -162,11 +162,11 @@ void SampleViewer::display()
 	{
 	case 0:
         m_depthStream.readFrame(&m_depthFrame);
-        std::cout << "Received Depth" << std::endl;
+        std::cout << "Received Depth #" << m_depthFrame.getFrameIndex() << std::endl;
         break;
 	case 1:
         m_colorStream.readFrame(&m_colorFrame);
-        std::cout << "Received Color" << std::endl;
+        std::cout << "Received Color #" << m_colorFrame.getFrameIndex() << std::endl;
         break;
 	default:
 		printf("Error in wait\n");
@@ -229,7 +229,7 @@ void SampleViewer::display()
 					int nHistValue = m_pDepthHist[*pDepth];
 					pTex->r = nHistValue;
 					pTex->g = nHistValue;
-					pTex->b = 0;
+                    pTex->b = 0;
 				}
 			}
 

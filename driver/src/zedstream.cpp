@@ -21,13 +21,12 @@ ZedStream::~ZedStream()
 }
 
 OniStatus ZedStream::initialize(std::shared_ptr<ZedDevice> device, int sensorId,
-                     int streamId, std::vector<ZedStreamProfileInfo> *profiles)
+                     int profileId, std::vector<ZedStreamProfileInfo> *profiles)
 {
-    zedLogFunc("type=%d sensorId=%d streamId=%d", mZedType, sensorId, streamId);
+    zedLogFunc("sensorId=%d profileId=%d", sensorId, profileId);
 
     mDevice = device;
     mSensorId = sensorId;
-    mStreamId = streamId;
     mProfiles = *profiles;
 
     memset(&mVideoMode, 0, sizeof(mVideoMode));
@@ -36,7 +35,7 @@ OniStatus ZedStream::initialize(std::shared_ptr<ZedDevice> device, int sensorId,
     {
         ZedStreamProfileInfo& sp = *iter;
 
-        if(sp.streamId==streamId)
+        if(sp.profileId==profileId)
         {
             mProfile = sp;
             break;
@@ -71,7 +70,7 @@ OniStatus ZedStream::start()
 {
     if(!mEnabled)
     {
-        zedLogFunc("type=%d sensorId=%d streamId=%d", mZedType, mSensorId, mStreamId);
+        zedLogFunc("type=%d sensorId=%d streamId=%d porfileId=%d", mZedType, mSensorId, mProfile.profileId);
         mEnabled = true;
         getDevice()->updateConfiguration();
     }
@@ -83,7 +82,7 @@ void ZedStream::stop()
 {
     if (mEnabled)
     {
-        zedLogFunc("type=%d sensorId=%d streamId=%d", mZedType, mSensorId, mStreamId);
+        zedLogFunc("type=%d sensorId=%d streamId=%d porfileId=%d", mZedType, mSensorId, mProfile.profileId);
         mEnabled = false;
         getDevice()->updateConfiguration();
     }

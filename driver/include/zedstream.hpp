@@ -13,7 +13,7 @@ struct ZedStreamProfileInfo
 {
     sl::RESOLUTION zedRes;
     int sensorId;
-    int streamId;
+    int profileId;
     OniSensorType streamType;
     OniPixelFormat format;
     int stride;
@@ -45,14 +45,13 @@ public:
     inline OniVideoMode getVideoMode() const { return mVideoMode; }
     inline ZedStreamProfileInfo getProfile() const { return mProfile; }
     inline int getSensorId() const { return mSensorId; }
-    inline int getStreamId() const { return mStreamId; }
 
 protected:
     ZedStream(const ZedStream&);
     void operator=(const ZedStream&);
 
     OniStatus initialize(std::shared_ptr<ZedDevice> device, int sensorId,
-                         int streamId, std::vector<ZedStreamProfileInfo>* profiles);
+                         int profileId, std::vector<ZedStreamProfileInfo>* profiles);
     void shutdown();
 
     bool getTable(void* dst, int* size, const std::vector<uint16_t>& table);
@@ -62,7 +61,6 @@ private:
     std::shared_ptr<ZedDevice> mDevice;
 
     int mSensorId;
-    int mStreamId;
     bool mEnabled = false;
 
     ZedStreamProfileInfo mProfile;

@@ -30,8 +30,9 @@ protected:
     OniStatus initialize();
     void shutdown();
     OniStatus initializeStreams();
-    OniStatus addStream(OniSensorType sensorType, int sensorId, int streamId, std::vector<ZedStreamProfileInfo> *profiles);
-    void findStreamProfiles(std::vector<ZedStreamProfileInfo>* dst, OniSensorType sensorType, int streamId);
+    OniStatus addStream(OniSensorType sensorType, int profileId, std::vector<ZedStreamProfileInfo> *profiles);
+    void findStreamProfiles(std::vector<ZedStreamProfileInfo>* dst, OniSensorType sensorType);
+    int getCurrentProfileId(std::vector<ZedStreamProfileInfo>* profiles);
 
     void publishFrame(std::shared_ptr<ZedStream> stream, int frameId);
 
