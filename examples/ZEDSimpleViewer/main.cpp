@@ -35,9 +35,9 @@ int main(int argc, char** argv)
 
 	rc = openni::OpenNI::initialize();
 
-	printf("After initialization:\n%s\n", openni::OpenNI::getExtendedError());
+    printf("After initialization:\n%s\n", openni::OpenNI::getExtendedError());
 
-	rc = device.open(deviceURI);
+    rc = device.open(deviceURI);
 	if (rc != openni::STATUS_OK)
 	{
 		printf("SimpleViewer: Device open failed:\n%s\n", openni::OpenNI::getExtendedError());
@@ -45,7 +45,20 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
+    const openni::SensorInfo* colorSensInfo = device.getSensorInfo(openni::SENSOR_COLOR);
+    const openni::Array<openni::VideoMode>& supportedColorModes = colorSensInfo->getSupportedVideoModes();
+
+    const openni::SensorInfo* depthSensInfo = device.getSensorInfo(openni::SENSOR_DEPTH);
+    const openni::Array<openni::VideoMode>& supportedDepthModes = depthSensInfo->getSupportedVideoModes();
+
+    printf("Available video modes:\n");
+    for( int i=0; i<supportedColorModes.getSize(); i++ )
+    {
+        printf("\t#%d %dx%d@%d\n", i,supportedColorModes[i].getResolutionX(),supportedColorModes[i].getResolutionY(),supportedColorModes[i].getFps());
+    }
+
     rc = color.create(device, openni::SENSOR_COLOR);
+    color.setProperty( ONI_STREAM_PROPERTY_VIDEO_MODE, (void*)&supportedColorModes[3], sizeof(openni::VideoMode));
     if (rc == openni::STATUS_OK)
     {
         rc = color.start();
@@ -61,6 +74,7 @@ int main(int argc, char** argv)
     }
 
     rc = depth.create(device, openni::SENSOR_DEPTH);
+    depth.setProperty( ONI_STREAM_PROPERTY_VIDEO_MODE, (void*)&supportedDepthModes[3], sizeof(openni::VideoMode));
 	if (rc == openni::STATUS_OK)
 	{
 		rc = depth.start();
@@ -80,7 +94,7 @@ int main(int argc, char** argv)
 		printf("SimpleViewer: No valid streams. Exiting\n");
 		openni::OpenNI::shutdown();
 		return 2;
-	}
+	}   
 
 	SampleViewer sampleViewer("Simple Viewer", device, depth, color);
 

@@ -44,6 +44,7 @@ public:
     inline OniSensorType getOniType() const { return mOniType; }
     inline OniVideoMode getVideoMode() const { return mVideoMode; }
     inline ZedStreamProfileInfo getProfile() const { return mProfile; }
+    inline const std::vector<ZedStreamProfileInfo>* getProfiles() const {return &mProfiles;}
     inline int getSensorId() const { return mSensorId; }
 
 protected:
@@ -51,11 +52,13 @@ protected:
     void operator=(const ZedStream&);
 
     OniStatus initialize(std::shared_ptr<ZedDevice> device, int sensorId,
-                         int profileId, std::vector<ZedStreamProfileInfo>* profiles);
+                         int profileId, const std::vector<ZedStreamProfileInfo> *profiles);
     void shutdown();
 
     bool getTable(void* dst, int* size, const std::vector<uint16_t>& table);
     bool setTable(const void* src, int size, std::vector<uint16_t>& table);
+
+    int isVideoModeSupported(OniVideoMode *mode);
 
 private:
     std::shared_ptr<ZedDevice> mDevice;

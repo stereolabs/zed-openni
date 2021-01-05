@@ -43,3 +43,5 @@ target_link_libraries(${EX1_NAME}
     ${OPENNI2_LIBRARIES}
     glut GL
 )
+
+

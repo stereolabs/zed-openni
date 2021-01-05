@@ -21,7 +21,7 @@ ZedStream::~ZedStream()
 }
 
 OniStatus ZedStream::initialize(std::shared_ptr<ZedDevice> device, int sensorId,
-                     int profileId, std::vector<ZedStreamProfileInfo> *profiles)
+                                int profileId, const std::vector<ZedStreamProfileInfo> *profiles)
 {
     zedLogFunc("sensorId=%d profileId=%d", sensorId, profileId);
 
@@ -70,9 +70,8 @@ OniStatus ZedStream::start()
 {
     if(!mEnabled)
     {
-        zedLogFunc("type=%d sensorId=%d streamId=%d porfileId=%d", mZedType, mSensorId, mProfile.profileId);
+        zedLogFunc("type=%d sensorId=%d porfileId=%d", mZedType, mSensorId, mProfile.profileId);
         mEnabled = true;
-        getDevice()->updateConfiguration();
     }
 
     return ONI_STATUS_OK;
@@ -82,10 +81,26 @@ void ZedStream::stop()
 {
     if (mEnabled)
     {
-        zedLogFunc("type=%d sensorId=%d streamId=%d porfileId=%d", mZedType, mSensorId, mProfile.profileId);
+        zedLogFunc("type=%d sensorId=%d porfileId=%d", mZedType, mSensorId, mProfile.profileId);
         mEnabled = false;
-        getDevice()->updateConfiguration();
     }
+}
+
+int ZedStream::isVideoModeSupported(OniVideoMode* mode)
+{
+    for(size_t spiIdx=0; spiIdx<mProfiles.size(); spiIdx++)
+    {
+        ZedStreamProfileInfo spi = mProfiles[spiIdx];
+
+        if(spi.width==mode->resolutionX &&
+                spi.height==mode->resolutionY &&
+                spi.framerate==mode->fps &&
+                spi.format==mode->pixelFormat)
+        {
+            return spiIdx;
+        }
+    }
+    return -1;
 }
 
 OniStatus ZedStream::setProperty(int propertyId, const void* data, int dataSize)
@@ -94,100 +109,101 @@ OniStatus ZedStream::setProperty(int propertyId, const void* data, int dataSize)
 
     switch (propertyId)
     {
-//		case ONI_STREAM_PROPERTY_VIDEO_MODE:
-//		{
-//			if (data && (dataSize == sizeof(OniVideoMode)))
-//			{
-//				OniVideoMode* mode = (OniVideoMode*)data;
-//				rsLogDebug("set video mode: %dx%d @%d format=%d",
-//					(int)mode->resolutionX, (int)mode->resolutionY, (int)mode->fps, (int)mode->pixelFormat);
-
-//				if (isVideoModeSupported(mode))
-//				{
-//					m_videoMode = *mode;
-//					return ONI_STATUS_OK;
-//				}
-//			}
-//			break;
-//		}
-
-//		case ONI_STREAM_PROPERTY_AUTO_WHITE_BALANCE:
-//		{
-//			if (data && dataSize == sizeof(OniBool) && m_oniType == ONI_SENSOR_COLOR)
-//			{
-//				Rs2Error e;
-//				float value = (float)*((OniBool*)data);
-//				rs2_set_option((const rs2_options*)m_sensor, RS2_OPTION_ENABLE_AUTO_WHITE_BALANCE, value, &e);
-//				if (e.success()) return ONI_STATUS_OK;
-//			}
-//			break;
-//		}
-
-//		case ONI_STREAM_PROPERTY_AUTO_EXPOSURE:
-//		{
-//			if (data && dataSize == sizeof(OniBool) && m_oniType == ONI_SENSOR_COLOR)
-//			{
-//				Rs2Error e;
-//				float value = (float)*((OniBool*)data);
-//				rs2_set_option((const rs2_options*)m_sensor, RS2_OPTION_ENABLE_AUTO_EXPOSURE, value, &e);
-//				if (e.success()) return ONI_STATUS_OK;
-//			}
-//			break;
-//		}
-
-//		case ONI_STREAM_PROPERTY_EXPOSURE:
-//		{
-//			if (data && dataSize == sizeof(int) && m_oniType == ONI_SENSOR_COLOR)
-//			{
-//				Rs2Error e;
-//				float value = (float)*((int*)data);
-//				rs2_set_option((const rs2_options*)m_sensor, RS2_OPTION_EXPOSURE, value, &e);
-//				if (e.success()) return ONI_STATUS_OK;
-//			}
-//			break;
-//		}
-
-//		case ONI_STREAM_PROPERTY_GAIN:
-//		{
-//			if (data && dataSize == sizeof(int) && m_oniType == ONI_SENSOR_COLOR)
-//			{
-//				Rs2Error e;
-//				float value = (float)*((int*)data);
-//				rs2_set_option((const rs2_options*)m_sensor, RS2_OPTION_GAIN, value, &e);
-//				if (e.success()) return ONI_STATUS_OK;
-//			}
-//			break;
-//		}
-
-        case XN_STREAM_PROPERTY_S2D_TABLE:
+    case ONI_STREAM_PROPERTY_VIDEO_MODE:
+    {
+        if (data && (dataSize == sizeof(OniVideoMode)))
         {
-            if (data && mOniType == ONI_SENSOR_DEPTH)
+            OniVideoMode* mode = (OniVideoMode*)data;
+            zedLogFunc("set video mode: %dx%d @%d format=%d",
+                       (int)mode->resolutionX, (int)mode->resolutionY, (int)mode->fps, (int)mode->pixelFormat);
+
+            int spiIdx =isVideoModeSupported(mode);
+            if(spiIdx!=-1)
             {
-                if (setTable(data, dataSize, m_s2d))
-                {
-                    return ONI_STATUS_OK;
-                }
+                getDevice()->changeVideoMode(&mProfiles[spiIdx]);
+                return ONI_STATUS_OK;
             }
-            break;
         }
+        break;
+    }
 
-        case XN_STREAM_PROPERTY_D2S_TABLE:
+        //		case ONI_STREAM_PROPERTY_AUTO_WHITE_BALANCE:
+        //		{
+        //			if (data && dataSize == sizeof(OniBool) && m_oniType == ONI_SENSOR_COLOR)
+        //			{
+        //				Rs2Error e;
+        //				float value = (float)*((OniBool*)data);
+        //				rs2_set_option((const rs2_options*)m_sensor, RS2_OPTION_ENABLE_AUTO_WHITE_BALANCE, value, &e);
+        //				if (e.success()) return ONI_STATUS_OK;
+        //			}
+        //			break;
+        //		}
+
+        //		case ONI_STREAM_PROPERTY_AUTO_EXPOSURE:
+        //		{
+        //			if (data && dataSize == sizeof(OniBool) && m_oniType == ONI_SENSOR_COLOR)
+        //			{
+        //				Rs2Error e;
+        //				float value = (float)*((OniBool*)data);
+        //				rs2_set_option((const rs2_options*)m_sensor, RS2_OPTION_ENABLE_AUTO_EXPOSURE, value, &e);
+        //				if (e.success()) return ONI_STATUS_OK;
+        //			}
+        //			break;
+        //		}
+
+        //		case ONI_STREAM_PROPERTY_EXPOSURE:
+        //		{
+        //			if (data && dataSize == sizeof(int) && m_oniType == ONI_SENSOR_COLOR)
+        //			{
+        //				Rs2Error e;
+        //				float value = (float)*((int*)data);
+        //				rs2_set_option((const rs2_options*)m_sensor, RS2_OPTION_EXPOSURE, value, &e);
+        //				if (e.success()) return ONI_STATUS_OK;
+        //			}
+        //			break;
+        //		}
+
+        //		case ONI_STREAM_PROPERTY_GAIN:
+        //		{
+        //			if (data && dataSize == sizeof(int) && m_oniType == ONI_SENSOR_COLOR)
+        //			{
+        //				Rs2Error e;
+        //				float value = (float)*((int*)data);
+        //				rs2_set_option((const rs2_options*)m_sensor, RS2_OPTION_GAIN, value, &e);
+        //				if (e.success()) return ONI_STATUS_OK;
+        //			}
+        //			break;
+        //		}
+
+    case XN_STREAM_PROPERTY_S2D_TABLE:
+    {
+        if (data && mOniType == ONI_SENSOR_DEPTH)
         {
-            if (data && mOniType == ONI_SENSOR_DEPTH)
+            if (setTable(data, dataSize, m_s2d))
             {
-                if (setTable(data, dataSize, m_d2s))
-                {
-                    return ONI_STATUS_OK;
-                }
+                return ONI_STATUS_OK;
             }
-            break;
         }
+        break;
+    }
 
-        default:
+    case XN_STREAM_PROPERTY_D2S_TABLE:
+    {
+        if (data && mOniType == ONI_SENSOR_DEPTH)
         {
-            zedLogError("Not supported: propertyId=%d", propertyId);
-            return ONI_STATUS_NOT_SUPPORTED;
+            if (setTable(data, dataSize, m_d2s))
+            {
+                return ONI_STATUS_OK;
+            }
         }
+        break;
+    }
+
+    default:
+    {
+        zedLogError("Not supported: propertyId=%d", propertyId);
+        return ONI_STATUS_NOT_SUPPORTED;
+    }
     }
 
     zedLogError("propertyId=%d dataSize=%d", propertyId, dataSize);
@@ -196,273 +212,285 @@ OniStatus ZedStream::setProperty(int propertyId, const void* data, int dataSize)
 
 OniStatus ZedStream::getProperty(int propertyId, void* data, int* dataSize)
 {
+#if 0
     zedLogFunc("propertyId=%d dataSize=%d", propertyId, *dataSize);
+#endif
 
     switch (propertyId)
     {
-        case ONI_STREAM_PROPERTY_CROPPING:
+    case ONI_STREAM_PROPERTY_CROPPING:
+    {
+        if (data && dataSize && *dataSize == sizeof(OniCropping))
         {
-            if (data && dataSize && *dataSize == sizeof(OniCropping))
+            OniCropping value;
+            value.enabled = false;
+            value.originX = 0;
+            value.originY = 0;
+            value.width = mVideoMode.resolutionX;
+            value.height = mVideoMode.resolutionY;
+            *((OniCropping*)data) = value;
+#if 0
+            zedLogFunc("\t Cropping: (%d,%d) %dx%d",value.originX,value.originY,value.width,value.height);
+#endif
+            return ONI_STATUS_OK;
+        }
+        break;
+    }
+
+    case ONI_STREAM_PROPERTY_HORIZONTAL_FOV:
+    {
+        if (data && dataSize && *dataSize == sizeof(float))
+        {
+            float val = mFovX * 0.01745329251994329576923690768489f;
+            *((float*)data) = val;
+#if 0
+            zedLogFunc("\t H_FOV: %g",val);
+#endif
+            return ONI_STATUS_OK;
+        }
+        break;
+    }
+
+    case ONI_STREAM_PROPERTY_VERTICAL_FOV:
+    {
+        if (data && dataSize && *dataSize == sizeof(float))
+        {
+            float val = mFovY * 0.01745329251994329576923690768489f;
+            *((float*)data) = val;
+#if 0
+            zedLogFunc("\t V_FOV: %g",val);
+#endif
+            return ONI_STATUS_OK;
+        }
+        break;
+    }
+
+    case ONI_STREAM_PROPERTY_VIDEO_MODE:
+    {
+        if (data && dataSize && *dataSize == sizeof(OniVideoMode))
+        {
+            *((OniVideoMode*)data) = mVideoMode;
+#if 1
+            zedLogFunc("\t OniVideoMode: Format: %d, FPS: %d, %dx%d",(int)mVideoMode.pixelFormat,mVideoMode.fps, mVideoMode.resolutionX, mVideoMode.resolutionY);
+#endif
+            return ONI_STATUS_OK;
+        }
+        break;
+    }
+
+    case ONI_STREAM_PROPERTY_MAX_VALUE:
+    {
+        if (data && dataSize && *dataSize == sizeof(int) && mOniType == ONI_SENSOR_DEPTH)
+        {
+            *((int*)data) = ONI_MAX_DEPTH;
+            return ONI_STATUS_OK;
+        }
+        break;
+    }
+
+    case ONI_STREAM_PROPERTY_MIN_VALUE:
+    {
+        if (data && dataSize && *dataSize == sizeof(int) && mOniType == ONI_SENSOR_DEPTH)
+        {
+            *((int*)data) = 0;
+            return ONI_STATUS_OK;
+        }
+        break;
+    }
+
+    case ONI_STREAM_PROPERTY_STRIDE:
+    {
+        if (data && dataSize && *dataSize == sizeof(int))
+        {
+            int val = mVideoMode.resolutionX * getPixelFormatBytes(mVideoMode.pixelFormat);
+            *((int*)data) = val;
+#if 0
+            zedLogFunc("\t Stride: %d",val);
+#endif
+            return ONI_STATUS_OK;
+        }
+        break;
+    }
+
+        //		case ONI_STREAM_PROPERTY_MIRRORING:
+        //		{
+        //			if (data && dataSize && *dataSize == sizeof(OniBool))
+        //			{
+        //				*((OniBool*)data) = false;
+        //				return ONI_STATUS_OK;
+        //			}
+        //			break;
+        //		}
+
+        //		case ONI_STREAM_PROPERTY_AUTO_WHITE_BALANCE:
+        //		{
+        //			if (data && dataSize && *dataSize == sizeof(OniBool) && m_oniType == ONI_SENSOR_COLOR)
+        //			{
+        //				Rs2Error e;
+        //				float value = rs2_get_option((const rs2_options*)m_sensor, RS2_OPTION_ENABLE_AUTO_WHITE_BALANCE, &e);
+        //				if (e.success())
+        //				{
+        //					*((OniBool*)data) = (int)value ? true : false;
+        //					return ONI_STATUS_OK;
+        //				}
+        //			}
+        //			break;
+        //		}
+
+        //		case ONI_STREAM_PROPERTY_AUTO_EXPOSURE:
+        //		{
+        //			if (data && dataSize && *dataSize == sizeof(OniBool) && m_oniType == ONI_SENSOR_COLOR)
+        //			{
+        //				Rs2Error e;
+        //				float value = rs2_get_option((const rs2_options*)m_sensor, RS2_OPTION_ENABLE_AUTO_EXPOSURE, &e);
+        //				if (e.success())
+        //				{
+        //					*((OniBool*)data) = (int)value ? true : false;
+        //					return ONI_STATUS_OK;
+        //				}
+        //			}
+        //			break;
+        //		}
+
+        //		case ONI_STREAM_PROPERTY_EXPOSURE:
+        //		{
+        //			if (data && dataSize && *dataSize == sizeof(int) && m_oniType == ONI_SENSOR_COLOR)
+        //			{
+        //				Rs2Error e;
+        //				float value = rs2_get_option((const rs2_options*)m_sensor, RS2_OPTION_EXPOSURE, &e);
+        //				if (e.success())
+        //				{
+        //					*((int*)data) = (int)value;
+        //					return ONI_STATUS_OK;
+        //				}
+        //			}
+        //			break;
+        //		}
+
+        //		case ONI_STREAM_PROPERTY_GAIN:
+        //		{
+        //			if (data && dataSize && *dataSize == sizeof(int) && m_oniType == ONI_SENSOR_COLOR)
+        //			{
+        //				Rs2Error e;
+        //				float value = rs2_get_option((const rs2_options*)m_sensor, RS2_OPTION_GAIN, &e);
+        //				if (e.success())
+        //				{
+        //					*((int*)data) = (int)value;
+        //					return ONI_STATUS_OK;
+        //				}
+        //			}
+        //			break;
+        //		}
+
+        //		case XN_STREAM_PROPERTY_GAIN:
+        //		{
+        //			if (data && dataSize && *dataSize == sizeof(unsigned long long) && m_oniType == ONI_SENSOR_DEPTH)
+        //			{
+        //				*((unsigned long long*)data) = GAIN_VAL;
+        //				return ONI_STATUS_OK;
+        //			}
+        //			break;
+        //		}
+
+        //        case XN_STREAM_PROPERTY_CONST_SHIFT:
+        //		{
+        //			if (data && dataSize && *dataSize == sizeof(unsigned long long) && m_oniType == ONI_SENSOR_DEPTH)
+        //			{
+        //				*((unsigned long long*)data) = CONST_SHIFT_VAL;
+        //				return ONI_STATUS_OK;
+        //			}
+        //			break;
+        //		}
+
+        //        case XN_STREAM_PROPERTY_MAX_SHIFT:
+        //		{
+        //			if (data && dataSize && *dataSize == sizeof(unsigned long long) && m_oniType == ONI_SENSOR_DEPTH)
+        //			{
+        //				*((unsigned long long*)data) = MAX_SHIFT_VAL;
+        //				return ONI_STATUS_OK;
+        //			}
+        //			break;
+        //		}
+
+        //        case XN_STREAM_PROPERTY_PARAM_COEFF:
+        //		{
+        //			if (data && dataSize && *dataSize == sizeof(unsigned long long) && m_oniType == ONI_SENSOR_DEPTH)
+        //			{
+        //				*((unsigned long long*)data) = PARAM_COEFF_VAL;
+        //				return ONI_STATUS_OK;
+        //			}
+        //			break;
+        //		}
+
+        //        case XN_STREAM_PROPERTY_SHIFT_SCALE:
+        //		{
+        //			if (data && dataSize && *dataSize == sizeof(unsigned long long) && m_oniType == ONI_SENSOR_DEPTH)
+        //			{
+        //				*((unsigned long long*)data) = SHIFT_SCALE_VAL;
+        //				return ONI_STATUS_OK;
+        //			}
+        //			break;
+        //		}
+
+        //        case XN_STREAM_PROPERTY_ZERO_PLANE_DISTANCE:
+        //		{
+        //			if (data && dataSize && *dataSize == sizeof(unsigned long long) && m_oniType == ONI_SENSOR_DEPTH)
+        //			{
+        //				*((unsigned long long*)data) = ZERO_PLANE_DISTANCE_VAL;
+        //				return ONI_STATUS_OK;
+        //			}
+        //			break;
+        //		}
+
+        //        case XN_STREAM_PROPERTY_ZERO_PLANE_PIXEL_SIZE:
+        //		{
+        //			if (data && dataSize && *dataSize == sizeof(double) && m_oniType == ONI_SENSOR_DEPTH)
+        //			{
+        //				*((double*)data) = ZERO_PLANE_PIXEL_SIZE_VAL;
+        //				return ONI_STATUS_OK;
+        //			}
+        //			break;
+        //		}
+
+        //        case XN_STREAM_PROPERTY_EMITTER_DCMOS_DISTANCE:
+        //		{
+        //			if (data && dataSize && *dataSize == sizeof(double) && m_oniType == ONI_SENSOR_DEPTH)
+        //			{
+        //				*((double*)data) = EMITTER_DCMOS_DISTANCE_VAL;
+        //				return ONI_STATUS_OK;
+        //			}
+        //			break;
+        //		}
+
+    case XN_STREAM_PROPERTY_S2D_TABLE:
+    {
+        if (data && dataSize && mOniType == ONI_SENSOR_DEPTH)
+        {
+            if (getTable(data, dataSize, m_s2d))
             {
-                OniCropping value;
-                value.enabled = false;
-                value.originX = 0;
-                value.originY = 0;
-                value.width = mVideoMode.resolutionX;
-                value.height = mVideoMode.resolutionY;
-                *((OniCropping*)data) = value;
-                zedLogFunc("\t Cropping: (%d,%d) %dx%d",value.originX,value.originY,value.width,value.height);
                 return ONI_STATUS_OK;
             }
-            break;
         }
+        break;
+    }
 
-        case ONI_STREAM_PROPERTY_HORIZONTAL_FOV:
+    case XN_STREAM_PROPERTY_D2S_TABLE:
+    {
+        if (data && dataSize && mOniType == ONI_SENSOR_DEPTH)
         {
-            if (data && dataSize && *dataSize == sizeof(float))
+            if (getTable(data, dataSize, m_d2s))
             {
-                float val = mFovX * 0.01745329251994329576923690768489f;
-                *((float*)data) = val;
-                zedLogFunc("\t H_FOV: %g",val);
                 return ONI_STATUS_OK;
             }
-            break;
         }
+        break;
+    }
 
-        case ONI_STREAM_PROPERTY_VERTICAL_FOV:
-        {
-            if (data && dataSize && *dataSize == sizeof(float))
-            {
-                float val = mFovY * 0.01745329251994329576923690768489f;
-                *((float*)data) = val;
-                zedLogFunc("\t V_FOV: %g",val);
-                return ONI_STATUS_OK;
-            }
-            break;
-        }
-
-        case ONI_STREAM_PROPERTY_VIDEO_MODE:
-        {
-            if (data && dataSize && *dataSize == sizeof(OniVideoMode))
-            {
-                *((OniVideoMode*)data) = mVideoMode;
-                zedLogFunc("\t OniVideoMode: Format: %d, FPS: %d, %dx%d",(int)mVideoMode.pixelFormat,mVideoMode.fps, mVideoMode.resolutionX, mVideoMode.resolutionY);
-                return ONI_STATUS_OK;
-            }
-            break;
-        }
-
-//		case ONI_STREAM_PROPERTY_MAX_VALUE:
-//		{
-//			if (data && dataSize && *dataSize == sizeof(int) && m_oniType == ONI_SENSOR_DEPTH)
-//			{
-//				*((int*)data) = ONI_MAX_DEPTH;
-//				return ONI_STATUS_OK;
-//			}
-//			break;
-//		}
-
-//		case ONI_STREAM_PROPERTY_MIN_VALUE:
-//		{
-//			if (data && dataSize && *dataSize == sizeof(int) && m_oniType == ONI_SENSOR_DEPTH)
-//			{
-//				*((int*)data) = 0;
-//				return ONI_STATUS_OK;
-//			}
-//			break;
-//		}
-
-        case ONI_STREAM_PROPERTY_STRIDE:
-        {
-            if (data && dataSize && *dataSize == sizeof(int))
-            {
-                int val = mVideoMode.resolutionX * getPixelFormatBytes(mVideoMode.pixelFormat);
-                *((int*)data) = val;
-                zedLogFunc("\t Stride: %d",val);
-                return ONI_STATUS_OK;
-            }
-            break;
-        }
-
-//		case ONI_STREAM_PROPERTY_MIRRORING:
-//		{
-//			if (data && dataSize && *dataSize == sizeof(OniBool))
-//			{
-//				*((OniBool*)data) = false;
-//				return ONI_STATUS_OK;
-//			}
-//			break;
-//		}
-
-//		case ONI_STREAM_PROPERTY_AUTO_WHITE_BALANCE:
-//		{
-//			if (data && dataSize && *dataSize == sizeof(OniBool) && m_oniType == ONI_SENSOR_COLOR)
-//			{
-//				Rs2Error e;
-//				float value = rs2_get_option((const rs2_options*)m_sensor, RS2_OPTION_ENABLE_AUTO_WHITE_BALANCE, &e);
-//				if (e.success())
-//				{
-//					*((OniBool*)data) = (int)value ? true : false;
-//					return ONI_STATUS_OK;
-//				}
-//			}
-//			break;
-//		}
-
-//		case ONI_STREAM_PROPERTY_AUTO_EXPOSURE:
-//		{
-//			if (data && dataSize && *dataSize == sizeof(OniBool) && m_oniType == ONI_SENSOR_COLOR)
-//			{
-//				Rs2Error e;
-//				float value = rs2_get_option((const rs2_options*)m_sensor, RS2_OPTION_ENABLE_AUTO_EXPOSURE, &e);
-//				if (e.success())
-//				{
-//					*((OniBool*)data) = (int)value ? true : false;
-//					return ONI_STATUS_OK;
-//				}
-//			}
-//			break;
-//		}
-
-//		case ONI_STREAM_PROPERTY_EXPOSURE:
-//		{
-//			if (data && dataSize && *dataSize == sizeof(int) && m_oniType == ONI_SENSOR_COLOR)
-//			{
-//				Rs2Error e;
-//				float value = rs2_get_option((const rs2_options*)m_sensor, RS2_OPTION_EXPOSURE, &e);
-//				if (e.success())
-//				{
-//					*((int*)data) = (int)value;
-//					return ONI_STATUS_OK;
-//				}
-//			}
-//			break;
-//		}
-
-//		case ONI_STREAM_PROPERTY_GAIN:
-//		{
-//			if (data && dataSize && *dataSize == sizeof(int) && m_oniType == ONI_SENSOR_COLOR)
-//			{
-//				Rs2Error e;
-//				float value = rs2_get_option((const rs2_options*)m_sensor, RS2_OPTION_GAIN, &e);
-//				if (e.success())
-//				{
-//					*((int*)data) = (int)value;
-//					return ONI_STATUS_OK;
-//				}
-//			}
-//			break;
-//		}
-
-//		case XN_STREAM_PROPERTY_GAIN:
-//		{
-//			if (data && dataSize && *dataSize == sizeof(unsigned long long) && m_oniType == ONI_SENSOR_DEPTH)
-//			{
-//				*((unsigned long long*)data) = GAIN_VAL;
-//				return ONI_STATUS_OK;
-//			}
-//			break;
-//		}
-
-//        case XN_STREAM_PROPERTY_CONST_SHIFT:
-//		{
-//			if (data && dataSize && *dataSize == sizeof(unsigned long long) && m_oniType == ONI_SENSOR_DEPTH)
-//			{
-//				*((unsigned long long*)data) = CONST_SHIFT_VAL;
-//				return ONI_STATUS_OK;
-//			}
-//			break;
-//		}
-
-//        case XN_STREAM_PROPERTY_MAX_SHIFT:
-//		{
-//			if (data && dataSize && *dataSize == sizeof(unsigned long long) && m_oniType == ONI_SENSOR_DEPTH)
-//			{
-//				*((unsigned long long*)data) = MAX_SHIFT_VAL;
-//				return ONI_STATUS_OK;
-//			}
-//			break;
-//		}
-
-//        case XN_STREAM_PROPERTY_PARAM_COEFF:
-//		{
-//			if (data && dataSize && *dataSize == sizeof(unsigned long long) && m_oniType == ONI_SENSOR_DEPTH)
-//			{
-//				*((unsigned long long*)data) = PARAM_COEFF_VAL;
-//				return ONI_STATUS_OK;
-//			}
-//			break;
-//		}
-
-//        case XN_STREAM_PROPERTY_SHIFT_SCALE:
-//		{
-//			if (data && dataSize && *dataSize == sizeof(unsigned long long) && m_oniType == ONI_SENSOR_DEPTH)
-//			{
-//				*((unsigned long long*)data) = SHIFT_SCALE_VAL;
-//				return ONI_STATUS_OK;
-//			}
-//			break;
-//		}
-
-//        case XN_STREAM_PROPERTY_ZERO_PLANE_DISTANCE:
-//		{
-//			if (data && dataSize && *dataSize == sizeof(unsigned long long) && m_oniType == ONI_SENSOR_DEPTH)
-//			{
-//				*((unsigned long long*)data) = ZERO_PLANE_DISTANCE_VAL;
-//				return ONI_STATUS_OK;
-//			}
-//			break;
-//		}
-
-//        case XN_STREAM_PROPERTY_ZERO_PLANE_PIXEL_SIZE:
-//		{
-//			if (data && dataSize && *dataSize == sizeof(double) && m_oniType == ONI_SENSOR_DEPTH)
-//			{
-//				*((double*)data) = ZERO_PLANE_PIXEL_SIZE_VAL;
-//				return ONI_STATUS_OK;
-//			}
-//			break;
-//		}
-
-//        case XN_STREAM_PROPERTY_EMITTER_DCMOS_DISTANCE:
-//		{
-//			if (data && dataSize && *dataSize == sizeof(double) && m_oniType == ONI_SENSOR_DEPTH)
-//			{
-//				*((double*)data) = EMITTER_DCMOS_DISTANCE_VAL;
-//				return ONI_STATUS_OK;
-//			}
-//			break;
-//		}
-
-        case XN_STREAM_PROPERTY_S2D_TABLE:
-        {
-            if (data && dataSize && mOniType == ONI_SENSOR_DEPTH)
-            {
-                if (getTable(data, dataSize, m_s2d))
-                {
-                    return ONI_STATUS_OK;
-                }
-            }
-            break;
-        }
-
-        case XN_STREAM_PROPERTY_D2S_TABLE:
-        {
-            if (data && dataSize && mOniType == ONI_SENSOR_DEPTH)
-            {
-                if (getTable(data, dataSize, m_d2s))
-                {
-                    return ONI_STATUS_OK;
-                }
-            }
-            break;
-        }
-
-        default:
-        {
-            zedLogError("Not supported: propertyId=%d", propertyId);
-            return ONI_STATUS_NOT_SUPPORTED;
-        }
+    default:
+    {
+        zedLogError("Not supported: propertyId=%d", propertyId);
+        return ONI_STATUS_NOT_SUPPORTED;
+    }
     }
 
     zedLogError("propertyId=%d dataSize=%d", propertyId, *dataSize);
@@ -475,40 +503,40 @@ OniBool ZedStream::isPropertySupported(int propertyId)
 
     switch (propertyId)
     {
-//		case ONI_STREAM_PROPERTY_CROPPING:				// OniCropping*
-//		case ONI_STREAM_PROPERTY_HORIZONTAL_FOV:		// float: radians
-//		case ONI_STREAM_PROPERTY_VERTICAL_FOV:			// float: radians
-//		case ONI_STREAM_PROPERTY_VIDEO_MODE:			// OniVideoMode*
-//		case ONI_STREAM_PROPERTY_MAX_VALUE:				// int
-//		case ONI_STREAM_PROPERTY_MIN_VALUE:				// int
-//		case ONI_STREAM_PROPERTY_STRIDE:				// int
-//		case ONI_STREAM_PROPERTY_MIRRORING:				// OniBool
-//			return true;
+    //		case ONI_STREAM_PROPERTY_CROPPING:				// OniCropping*
+    //		case ONI_STREAM_PROPERTY_HORIZONTAL_FOV:		// float: radians
+    //		case ONI_STREAM_PROPERTY_VERTICAL_FOV:			// float: radians
+    //		case ONI_STREAM_PROPERTY_VIDEO_MODE:			// OniVideoMode*
+    //		case ONI_STREAM_PROPERTY_MAX_VALUE:				// int
+    //		case ONI_STREAM_PROPERTY_MIN_VALUE:				// int
+    //		case ONI_STREAM_PROPERTY_STRIDE:				// int
+    //		case ONI_STREAM_PROPERTY_MIRRORING:				// OniBool
+    //			return true;
 
 
-        case ONI_STREAM_PROPERTY_NUMBER_OF_FRAMES:		// int
-            return false;
+    case ONI_STREAM_PROPERTY_NUMBER_OF_FRAMES:		// int
+        return false;
 
-//		case ONI_STREAM_PROPERTY_AUTO_WHITE_BALANCE:	// OniBool
-//		case ONI_STREAM_PROPERTY_AUTO_EXPOSURE:			// OniBool
-//		case ONI_STREAM_PROPERTY_EXPOSURE:				// int
-//		case ONI_STREAM_PROPERTY_GAIN:					// int
-//			return true;
+        //		case ONI_STREAM_PROPERTY_AUTO_WHITE_BALANCE:	// OniBool
+        //		case ONI_STREAM_PROPERTY_AUTO_EXPOSURE:			// OniBool
+        //		case ONI_STREAM_PROPERTY_EXPOSURE:				// int
+        //		case ONI_STREAM_PROPERTY_GAIN:					// int
+        //			return true;
 
-//		case XN_STREAM_PROPERTY_GAIN:
-//        case XN_STREAM_PROPERTY_CONST_SHIFT:
-//        case XN_STREAM_PROPERTY_MAX_SHIFT:
-//        case XN_STREAM_PROPERTY_PARAM_COEFF:
-//        case XN_STREAM_PROPERTY_SHIFT_SCALE:
-//        case XN_STREAM_PROPERTY_ZERO_PLANE_DISTANCE:
-//        case XN_STREAM_PROPERTY_ZERO_PLANE_PIXEL_SIZE:
-//        case XN_STREAM_PROPERTY_EMITTER_DCMOS_DISTANCE:
-        case XN_STREAM_PROPERTY_S2D_TABLE:
-        case XN_STREAM_PROPERTY_D2S_TABLE:
-            return true;
+        //		case XN_STREAM_PROPERTY_GAIN:
+        //        case XN_STREAM_PROPERTY_CONST_SHIFT:
+        //        case XN_STREAM_PROPERTY_MAX_SHIFT:
+        //        case XN_STREAM_PROPERTY_PARAM_COEFF:
+        //        case XN_STREAM_PROPERTY_SHIFT_SCALE:
+        //        case XN_STREAM_PROPERTY_ZERO_PLANE_DISTANCE:
+        //        case XN_STREAM_PROPERTY_ZERO_PLANE_PIXEL_SIZE:
+        //        case XN_STREAM_PROPERTY_EMITTER_DCMOS_DISTANCE:
+    case XN_STREAM_PROPERTY_S2D_TABLE:
+    case XN_STREAM_PROPERTY_D2S_TABLE:
+        return true;
 
-        default:
-            return false;
+    default:
+        return false;
     }
 }
 

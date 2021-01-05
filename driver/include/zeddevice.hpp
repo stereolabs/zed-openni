@@ -23,9 +23,6 @@ public:
 
     virtual StreamBase* createStream(OniSensorType sensorType) override;
     virtual void destroyStream(StreamBase* pStream) override;
-
-    void updateConfiguration();
-
 protected:
     OniStatus initialize();
     void shutdown();
@@ -33,20 +30,23 @@ protected:
     OniStatus addStream(OniSensorType sensorType, int profileId, std::vector<ZedStreamProfileInfo> *profiles);
     void findStreamProfiles(std::vector<ZedStreamProfileInfo>* dst, OniSensorType sensorType);
     int getCurrentProfileId(std::vector<ZedStreamProfileInfo>* profiles);
+    int getProfileId(const std::vector<ZedStreamProfileInfo>* profiles, int width, int height, int fps);
+
+    void changeVideoMode(const ZedStreamProfileInfo* spi);
 
     void publishFrame(std::shared_ptr<ZedStream> stream, int frameId);
 
     void grabThreadFunc();
 
-    OniStatus startCamera();
+    OniStatus startCamera(const ZedStreamProfileInfo* spi);
     void stopCamera();
-    void restartCamera();
+    OniStatus restartCamera(const ZedStreamProfileInfo* spi);
     bool hasEnabledStreams();
-
 
 protected:
     std::mutex mStateMutex;
     std::mutex mStreamsMutex;
+    std::mutex mCamMutex;
 
     OniDeviceInfo mInfo;
     std::vector<OniSensorInfo> mSensorInfo;
@@ -55,8 +55,7 @@ protected:
 
     volatile bool mThreadRunning=false;
     volatile bool mStopThread=false;
-
-    volatile int mConfigId=0;
+    volatile bool mVideoModeChanged=false;
 
     sl::Camera mZed;
     sl::DeviceProperties mZedProp;
