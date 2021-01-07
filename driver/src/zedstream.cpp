@@ -5,17 +5,20 @@
 
 namespace oni { namespace driver {
 
-ZedStream::ZedStream(OniSensorType sensorType)
+ZedStream::ZedStream(OniSensorType sensorType, bool verbose)
+    : mVerbose(verbose)
 {
-    zedLogDebug("+ZedStream sensorType: %s", streamType2Str(sensorType).c_str());
+    if(mVerbose)
+        zedLogDebug("+ZedStream sensorType: %s", streamType2Str(sensorType).c_str());
+
     mZedType = convertStreamType(sensorType);
     mOniType = sensorType;
-
 }
 
 ZedStream::~ZedStream()
 {
-    zedLogFunc("~Rs2Stream type=%d", (int)mZedType);
+    if(mVerbose)
+        zedLogFunc("~Rs2Stream type=%d", (int)mZedType);
 
     shutdown();
 }
@@ -23,7 +26,8 @@ ZedStream::~ZedStream()
 OniStatus ZedStream::initialize(std::shared_ptr<ZedDevice> device, int sensorId,
                                 int profileId, const std::vector<ZedStreamProfileInfo> *profiles)
 {
-    zedLogFunc("sensorId=%d profileId=%d", sensorId, profileId);
+    if(mVerbose)
+        zedLogFunc("sensorId=%d profileId=%d", sensorId, profileId);
 
     mDevice = device;
     mSensorId = sensorId;
@@ -42,8 +46,16 @@ OniStatus ZedStream::initialize(std::shared_ptr<ZedDevice> device, int sensorId,
         }
     }
 
-    mFovX = device->mZed.getCameraInformation().calibration_parameters.left_cam.h_fov;
-    mFovY = device->mZed.getCameraInformation().calibration_parameters.left_cam.v_fov;
+    if(mDevice->mRightMeasure)
+    {
+        mFovX = device->mZed.getCameraInformation().calibration_parameters.left_cam.h_fov;
+        mFovY = device->mZed.getCameraInformation().calibration_parameters.left_cam.v_fov;
+    }
+    else
+    {
+        mFovX = device->mZed.getCameraInformation().calibration_parameters.right_cam.h_fov;
+        mFovY = device->mZed.getCameraInformation().calibration_parameters.right_cam.v_fov;
+    }
 
     mVideoMode.fps = mProfile.framerate;
     mVideoMode.pixelFormat = mProfile.format;
@@ -62,15 +74,18 @@ OniStatus ZedStream::initialize(std::shared_ptr<ZedDevice> device, int sensorId,
 
 void ZedStream::shutdown()
 {
-    // TODO
-    zedLogFunc("");
+    if(mVerbose)
+        zedLogFunc("");
+
+    stop();
 }
 
 OniStatus ZedStream::start()
 {
     if(!mEnabled)
     {
-        zedLogFunc("type=%d sensorId=%d porfileId=%d", mZedType, mSensorId, mProfile.profileId);
+        if(mVerbose)
+            zedLogFunc("type=%d sensorId=%d porfileId=%d", mZedType, mSensorId, mProfile.profileId);
         mEnabled = true;
     }
 
@@ -81,7 +96,8 @@ void ZedStream::stop()
 {
     if (mEnabled)
     {
-        zedLogFunc("type=%d sensorId=%d porfileId=%d", mZedType, mSensorId, mProfile.profileId);
+        if(mVerbose)
+            zedLogFunc("type=%d sensorId=%d porfileId=%d", mZedType, mSensorId, mProfile.profileId);
         mEnabled = false;
     }
 }
@@ -105,75 +121,76 @@ int ZedStream::isVideoModeSupported(OniVideoMode* mode)
 
 OniStatus ZedStream::setProperty(int propertyId, const void* data, int dataSize)
 {
-    zedLogFunc("propertyId=%d dataSize=%d", propertyId, dataSize);
+    if(mVerbose)
+        zedLogFunc("propertyId=%d dataSize=%d", propertyId, dataSize);
 
     switch (propertyId)
     {
-    case ONI_STREAM_PROPERTY_VIDEO_MODE:
-    {
-        if (data && (dataSize == sizeof(OniVideoMode)))
-        {
-            OniVideoMode* mode = (OniVideoMode*)data;
-            zedLogFunc("set video mode: %dx%d @%d format=%d",
-                       (int)mode->resolutionX, (int)mode->resolutionY, (int)mode->fps, (int)mode->pixelFormat);
+    //    case ONI_STREAM_PROPERTY_VIDEO_MODE:
+    //    {
+    //        if (data && (dataSize == sizeof(OniVideoMode)))
+    //        {
+    //            OniVideoMode* mode = (OniVideoMode*)data;
+    //            zedLogFunc("set video mode: %dx%d @%d format=%d",
+    //                       (int)mode->resolutionX, (int)mode->resolutionY, (int)mode->fps, (int)mode->pixelFormat);
 
-            int spiIdx =isVideoModeSupported(mode);
-            if(spiIdx!=-1)
-            {
-                getDevice()->changeVideoMode(&mProfiles[spiIdx]);
-                return ONI_STATUS_OK;
-            }
-        }
-        break;
-    }
+    //            int spiIdx =isVideoModeSupported(mode);
+    //            if(spiIdx!=-1)
+    //            {
+    //                getDevice()->changeVideoMode(&mProfiles[spiIdx]);
+    //                return ONI_STATUS_OK;
+    //            }
+    //        }
+    //        break;
+    //    }
 
-        //		case ONI_STREAM_PROPERTY_AUTO_WHITE_BALANCE:
-        //		{
-        //			if (data && dataSize == sizeof(OniBool) && m_oniType == ONI_SENSOR_COLOR)
-        //			{
-        //				Rs2Error e;
-        //				float value = (float)*((OniBool*)data);
-        //				rs2_set_option((const rs2_options*)m_sensor, RS2_OPTION_ENABLE_AUTO_WHITE_BALANCE, value, &e);
-        //				if (e.success()) return ONI_STATUS_OK;
-        //			}
-        //			break;
-        //		}
+    //		case ONI_STREAM_PROPERTY_AUTO_WHITE_BALANCE:
+    //		{
+    //			if (data && dataSize == sizeof(OniBool) && m_oniType == ONI_SENSOR_COLOR)
+    //			{
+    //				Rs2Error e;
+    //				float value = (float)*((OniBool*)data);
+    //				rs2_set_option((const rs2_options*)m_sensor, RS2_OPTION_ENABLE_AUTO_WHITE_BALANCE, value, &e);
+    //				if (e.success()) return ONI_STATUS_OK;
+    //			}
+    //			break;
+    //		}
 
-        //		case ONI_STREAM_PROPERTY_AUTO_EXPOSURE:
-        //		{
-        //			if (data && dataSize == sizeof(OniBool) && m_oniType == ONI_SENSOR_COLOR)
-        //			{
-        //				Rs2Error e;
-        //				float value = (float)*((OniBool*)data);
-        //				rs2_set_option((const rs2_options*)m_sensor, RS2_OPTION_ENABLE_AUTO_EXPOSURE, value, &e);
-        //				if (e.success()) return ONI_STATUS_OK;
-        //			}
-        //			break;
-        //		}
+    //		case ONI_STREAM_PROPERTY_AUTO_EXPOSURE:
+    //		{
+    //			if (data && dataSize == sizeof(OniBool) && m_oniType == ONI_SENSOR_COLOR)
+    //			{
+    //				Rs2Error e;
+    //				float value = (float)*((OniBool*)data);
+    //				rs2_set_option((const rs2_options*)m_sensor, RS2_OPTION_ENABLE_AUTO_EXPOSURE, value, &e);
+    //				if (e.success()) return ONI_STATUS_OK;
+    //			}
+    //			break;
+    //		}
 
-        //		case ONI_STREAM_PROPERTY_EXPOSURE:
-        //		{
-        //			if (data && dataSize == sizeof(int) && m_oniType == ONI_SENSOR_COLOR)
-        //			{
-        //				Rs2Error e;
-        //				float value = (float)*((int*)data);
-        //				rs2_set_option((const rs2_options*)m_sensor, RS2_OPTION_EXPOSURE, value, &e);
-        //				if (e.success()) return ONI_STATUS_OK;
-        //			}
-        //			break;
-        //		}
+    //		case ONI_STREAM_PROPERTY_EXPOSURE:
+    //		{
+    //			if (data && dataSize == sizeof(int) && m_oniType == ONI_SENSOR_COLOR)
+    //			{
+    //				Rs2Error e;
+    //				float value = (float)*((int*)data);
+    //				rs2_set_option((const rs2_options*)m_sensor, RS2_OPTION_EXPOSURE, value, &e);
+    //				if (e.success()) return ONI_STATUS_OK;
+    //			}
+    //			break;
+    //		}
 
-        //		case ONI_STREAM_PROPERTY_GAIN:
-        //		{
-        //			if (data && dataSize == sizeof(int) && m_oniType == ONI_SENSOR_COLOR)
-        //			{
-        //				Rs2Error e;
-        //				float value = (float)*((int*)data);
-        //				rs2_set_option((const rs2_options*)m_sensor, RS2_OPTION_GAIN, value, &e);
-        //				if (e.success()) return ONI_STATUS_OK;
-        //			}
-        //			break;
-        //		}
+    //		case ONI_STREAM_PROPERTY_GAIN:
+    //		{
+    //			if (data && dataSize == sizeof(int) && m_oniType == ONI_SENSOR_COLOR)
+    //			{
+    //				Rs2Error e;
+    //				float value = (float)*((int*)data);
+    //				rs2_set_option((const rs2_options*)m_sensor, RS2_OPTION_GAIN, value, &e);
+    //				if (e.success()) return ONI_STATUS_OK;
+    //			}
+    //			break;
+    //		}
 
     case XN_STREAM_PROPERTY_S2D_TABLE:
     {
@@ -270,9 +287,9 @@ OniStatus ZedStream::getProperty(int propertyId, void* data, int* dataSize)
         if (data && dataSize && *dataSize == sizeof(OniVideoMode))
         {
             *((OniVideoMode*)data) = mVideoMode;
-#if 1
-            zedLogFunc("\t OniVideoMode: Format: %d, FPS: %d, %dx%d",(int)mVideoMode.pixelFormat,mVideoMode.fps, mVideoMode.resolutionX, mVideoMode.resolutionY);
-#endif
+            if(mVerbose)
+                zedLogFunc("\t OniVideoMode: Format: %d, FPS: %d, %dx%d",(int)mVideoMode.pixelFormat,mVideoMode.fps, mVideoMode.resolutionX, mVideoMode.resolutionY);
+
             return ONI_STATUS_OK;
         }
         break;
@@ -499,7 +516,8 @@ OniStatus ZedStream::getProperty(int propertyId, void* data, int* dataSize)
 
 OniBool ZedStream::isPropertySupported(int propertyId)
 {
-    zedLogFunc("propertyId=%d", propertyId);
+    if(mVerbose)
+        zedLogFunc("propertyId=%d", propertyId);
 
     switch (propertyId)
     {

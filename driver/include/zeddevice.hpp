@@ -25,6 +25,7 @@ public:
     virtual void destroyStream(StreamBase* pStream) override;
 protected:
     OniStatus initialize();
+    void initCameraParams();
     void shutdown();
     OniStatus initializeStreams();
     OniStatus addStream(OniSensorType sensorType, int profileId, std::vector<ZedStreamProfileInfo> *profiles);
@@ -32,7 +33,7 @@ protected:
     int getCurrentProfileId(std::vector<ZedStreamProfileInfo>* profiles);
     int getProfileId(const std::vector<ZedStreamProfileInfo>* profiles, int width, int height, int fps);
 
-    void changeVideoMode(const ZedStreamProfileInfo* spi);
+    //void changeVideoMode(const ZedStreamProfileInfo* spi);
 
     void publishFrame(std::shared_ptr<ZedStream> stream, int frameId);
 
@@ -40,7 +41,7 @@ protected:
 
     OniStatus startCamera(const ZedStreamProfileInfo* spi);
     void stopCamera();
-    OniStatus restartCamera(const ZedStreamProfileInfo* spi);
+    //OniStatus restartCamera(const ZedStreamProfileInfo* spi);
     bool hasEnabledStreams();
 
 protected:
@@ -60,6 +61,9 @@ protected:
     sl::Camera mZed;
     sl::DeviceProperties mZedProp;
 
+    bool mRightMeasure=false;
+    bool mVerbose=false;
+
     std::vector<ZedStreamProfileInfo> mProfiles;
 
     ZedDriver* mDriver = nullptr;
@@ -68,6 +72,9 @@ protected:
     std::list<std::shared_ptr<ZedStream>> mCreatedStreams;
 
     std::list<std::shared_ptr<ZedStream>> mStreams;
+
+    sl::InitParameters mZedInitParams;
+    sl::RuntimeParameters mZedRtParams;
 };
 
 } } // namespace driver // namespace oni

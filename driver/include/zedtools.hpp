@@ -6,6 +6,9 @@
 
 #define EMULATE_PRIMESENSE_HARDWARE // HACK: NiTE only runs on PrimeSense SoC, so we simulate it
 
+#define DEFAULT_INIT_PARAMS_FILE "./ZedInitConfig.yaml"
+#define DEFAULT_RT_PARAMS_FILE "./ZedRuntimeConfig.yaml"
+
 #define zedLogError(format, ...) printf("[ZED] ERROR at FILE %s LINE %d FUNC %s\n\t" format "\n", __FILE__, __LINE__, __FUNCTION__, ##  __VA_ARGS__);fflush(stdout)
 #define zedLogFunc(format, ...) printf("[ZED] (%s) %s " format "\n", typeid(this).name(), __FUNCTION__,  ##  __VA_ARGS__);fflush(stdout)
 #define zedLogDebug(format, ...) printf("[ZED] " format "\n", ## __VA_ARGS__);fflush(stdout)
@@ -25,13 +28,13 @@ inline std::string streamType2Str(OniSensorType type)
     switch(type)
     {
     case ONI_SENSOR_DEPTH:
-        return std::string(sl::toString(sl::MEASURE::DEPTH));
+        return std::string("DEPTH");
         break;
     case ONI_SENSOR_COLOR:
-        return std::string(sl::toString(sl::VIEW::LEFT));
+        return std::string("COLOR");
         break;
     case ONI_SENSOR_IR:
-        return std::string(sl::toString(sl::VIEW::LEFT_GRAY));
+        return std::string("GRAY");
         break;
     default:
         return std::string("NOT SUPPORTED");

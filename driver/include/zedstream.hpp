@@ -27,7 +27,7 @@ class ZedStream : public StreamBase {
     friend class ZedDevice;
 
 public:
-    ZedStream(OniSensorType sensorType);
+    ZedStream(OniSensorType sensorType, bool verbose=false);
     virtual ~ZedStream();
 
     virtual OniStatus setProperty(int propertyId, const void* data, int dataSize) override;
@@ -61,6 +61,8 @@ protected:
     int isVideoModeSupported(OniVideoMode *mode);
 
 private:
+    bool mVerbose = false;
+
     std::shared_ptr<ZedDevice> mDevice;
 
     int mSensorId;

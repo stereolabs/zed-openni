@@ -7,12 +7,16 @@ namespace oni { namespace driver {
 ZedDriver::ZedDriver(OniDriverServices *driverServices)
     : DriverBase(driverServices)
 {
+#ifndef NDEBUG
     zedLogDebug("+ZedDriver");
+#endif
 }
 
 ZedDriver::~ZedDriver()
 {
+#ifndef NDEBUG
     zedLogDebug("~ZedDriver");
+#endif
 
     if(mDevices.size()>0)
     {
@@ -22,7 +26,9 @@ ZedDriver::~ZedDriver()
 
 void ZedDriver::shutdown()
 {
+#ifndef NDEBUG
     zedLogFunc("");
+#endif
 
     std::lock_guard<std::mutex> lock(mStateMutex);
 
@@ -35,7 +41,9 @@ OniStatus ZedDriver::initialize(
         DeviceStateChangedCallback deviceStateChangedCallback,
         void* cookie)
 {
+#ifndef NDEBUG
     zedLogFunc("");
+#endif
 
     std::lock_guard<std::mutex> lock(mStateMutex);
 
@@ -44,8 +52,9 @@ OniStatus ZedDriver::initialize(
         zedLogError("DriverBase::initialize failed");
         return ONI_STATUS_ERROR;
     }
-
+#ifndef NDEBUG
     zedLogDebug("initialized");
+#endif
 
     enumerateDevices();
 
@@ -70,7 +79,7 @@ OniStatus ZedDriver::initialize(
         info.usbProductId = 1537;
 #else
         sl::String camModel = sl::toString(mZedDevList[i].camera_model);
-        strncpy(info.name, camModel.c_str(), camModel.size());        
+        strncpy(info.name, camModel.c_str(), camModel.size());
         std::string vendor = "Stereolabs";
         vendor += '\0';
         strncpy(info.vendor, vendor.c_str(), vendor.size());
@@ -108,7 +117,9 @@ OniStatus ZedDriver::initialize(
 
 size_t ZedDriver::enumerateDevices()
 {
+#ifndef NDEBUG
     zedLogFunc("");
+#endif
 
     std::lock_guard<std::mutex> lock(mDevicesMutex);
 
@@ -121,7 +132,9 @@ size_t ZedDriver::enumerateDevices()
 
 DeviceBase* ZedDriver::deviceOpen(const char* uri, const char* mode)
 {
+#ifndef NDEBUG
     zedLogFunc("");
+#endif
 
     unsigned int serial_number = 0;
 
@@ -178,22 +191,30 @@ DeviceBase* ZedDriver::deviceOpen(const char* uri, const char* mode)
 
 void ZedDriver::deviceClose(DeviceBase* deviceBase)
 {
+#ifndef NDEBUG
     zedLogFunc("");
+#endif
 }
 
 OniStatus ZedDriver::tryDevice(const char* uri)
 {
+#ifndef NDEBUG
     zedLogFunc("");
+#endif
 }
 
 void* ZedDriver::enableFrameSync(StreamBase** streams, int streamCount)
 {
+#ifndef NDEBUG
     zedLogFunc("");
+#endif
 }
 
 void ZedDriver::disableFrameSync(void* frameSyncGroup)
 {
+#ifndef NDEBUG
     zedLogFunc("");
+#endif
 }
 
 

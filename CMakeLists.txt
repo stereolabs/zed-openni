@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.8.0)
+cmake_minimum_required (VERSION 3.10.0)
 project (zed-openni)
 
 set(CMAKE_CXX_STANDARD 14)
@@ -40,6 +40,10 @@ if(UNIX)
     message(STATUS "[${PROJECT_NAME}] OS: Unix")
     add_definitions(-std=c++14 -Wno-deprecated-declarations -Wno-write-strings -no-pie)
 endif(UNIX)
+
+if(MSVC)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++14")
+endif(MSVC)
 
 ###########################################################################
 ### Build type

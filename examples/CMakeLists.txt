@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.8.0)
+cmake_minimum_required (VERSION 3.10.0)
 project (zed-openni-examples)
 
 set(CMAKE_CXX_STANDARD 14)
