@@ -76,8 +76,6 @@ void ZedStream::shutdown()
 {
     if(mVerbose)
         zedLogFunc("");
-
-    stop();
 }
 
 OniStatus ZedStream::start()
@@ -144,53 +142,89 @@ OniStatus ZedStream::setProperty(int propertyId, const void* data, int dataSize)
     //        break;
     //    }
 
-    //		case ONI_STREAM_PROPERTY_AUTO_WHITE_BALANCE:
-    //		{
-    //			if (data && dataSize == sizeof(OniBool) && m_oniType == ONI_SENSOR_COLOR)
-    //			{
-    //				Rs2Error e;
-    //				float value = (float)*((OniBool*)data);
-    //				rs2_set_option((const rs2_options*)m_sensor, RS2_OPTION_ENABLE_AUTO_WHITE_BALANCE, value, &e);
-    //				if (e.success()) return ONI_STATUS_OK;
-    //			}
-    //			break;
-    //		}
+    case ONI_STREAM_PROPERTY_AUTO_WHITE_BALANCE:
+    {
+        if (data && dataSize == sizeof(OniBool) )
+        {
+            bool enable = (bool)(*(OniBool*)data);
+            int setValue = enable?1:0;
+            mDevice->mZed.setCameraSettings( sl::VIDEO_SETTINGS::WHITEBALANCE_AUTO, setValue);
 
-    //		case ONI_STREAM_PROPERTY_AUTO_EXPOSURE:
-    //		{
-    //			if (data && dataSize == sizeof(OniBool) && m_oniType == ONI_SENSOR_COLOR)
-    //			{
-    //				Rs2Error e;
-    //				float value = (float)*((OniBool*)data);
-    //				rs2_set_option((const rs2_options*)m_sensor, RS2_OPTION_ENABLE_AUTO_EXPOSURE, value, &e);
-    //				if (e.success()) return ONI_STATUS_OK;
-    //			}
-    //			break;
-    //		}
+            int getValue = mDevice->mZed.getCameraSettings(sl::VIDEO_SETTINGS::WHITEBALANCE_AUTO);
 
-    //		case ONI_STREAM_PROPERTY_EXPOSURE:
-    //		{
-    //			if (data && dataSize == sizeof(int) && m_oniType == ONI_SENSOR_COLOR)
-    //			{
-    //				Rs2Error e;
-    //				float value = (float)*((int*)data);
-    //				rs2_set_option((const rs2_options*)m_sensor, RS2_OPTION_EXPOSURE, value, &e);
-    //				if (e.success()) return ONI_STATUS_OK;
-    //			}
-    //			break;
-    //		}
+            if(getValue==setValue)
+                return ONI_STATUS_OK;
+            else
+                return ONI_STATUS_ERROR;
+        }
+        break;
+    }
 
-    //		case ONI_STREAM_PROPERTY_GAIN:
-    //		{
-    //			if (data && dataSize == sizeof(int) && m_oniType == ONI_SENSOR_COLOR)
-    //			{
-    //				Rs2Error e;
-    //				float value = (float)*((int*)data);
-    //				rs2_set_option((const rs2_options*)m_sensor, RS2_OPTION_GAIN, value, &e);
-    //				if (e.success()) return ONI_STATUS_OK;
-    //			}
-    //			break;
-    //		}
+    case ONI_STREAM_PROPERTY_AUTO_EXPOSURE:
+    {
+        if (data && dataSize == sizeof(OniBool))
+        {
+            bool enable = (bool)(*(OniBool*)data);
+            int setValue = enable?1:0;
+            mDevice->mZed.setCameraSettings( sl::VIDEO_SETTINGS::AEC_AGC, setValue);
+
+            int getValue = mDevice->mZed.getCameraSettings(sl::VIDEO_SETTINGS::AEC_AGC);
+
+            if(getValue==setValue)
+                return ONI_STATUS_OK;
+            else
+                return ONI_STATUS_ERROR;
+        }
+        break;
+    }
+
+    case ONI_STREAM_PROPERTY_EXPOSURE:
+    {
+        if (data && dataSize == sizeof(int))
+        {
+            int setValue = *((int*)data);
+
+            if((setValue<0) || (setValue>100))
+            {
+                zedLogError("Invalid Exposure value. Valid range: [0,100]");
+                return ONI_STATUS_ERROR;
+            }
+
+            mDevice->mZed.setCameraSettings( sl::VIDEO_SETTINGS::EXPOSURE, setValue);
+
+            int getValue = mDevice->mZed.getCameraSettings(sl::VIDEO_SETTINGS::EXPOSURE);
+
+            if(getValue==setValue)
+                return ONI_STATUS_OK;
+            else
+                return ONI_STATUS_ERROR;
+        }
+        break;
+    }
+
+    case ONI_STREAM_PROPERTY_GAIN:
+    {
+        if (data && dataSize == sizeof(int))
+        {
+            int setValue = *((int*)data);
+
+            if((setValue<0) || (setValue>100))
+            {
+                zedLogError("Invalid Gain value. Valid range: [0,100]");
+                return ONI_STATUS_ERROR;
+            }
+
+            mDevice->mZed.setCameraSettings( sl::VIDEO_SETTINGS::GAIN, setValue);
+
+            int getValue = mDevice->mZed.getCameraSettings(sl::VIDEO_SETTINGS::GAIN);
+
+            if(getValue==setValue)
+                return ONI_STATUS_OK;
+            else
+                return ONI_STATUS_ERROR;
+        }
+        break;
+    }
 
     case XN_STREAM_PROPERTY_S2D_TABLE:
     {
@@ -339,65 +373,53 @@ OniStatus ZedStream::getProperty(int propertyId, void* data, int* dataSize)
         //			break;
         //		}
 
-        //		case ONI_STREAM_PROPERTY_AUTO_WHITE_BALANCE:
-        //		{
-        //			if (data && dataSize && *dataSize == sizeof(OniBool) && m_oniType == ONI_SENSOR_COLOR)
-        //			{
-        //				Rs2Error e;
-        //				float value = rs2_get_option((const rs2_options*)m_sensor, RS2_OPTION_ENABLE_AUTO_WHITE_BALANCE, &e);
-        //				if (e.success())
-        //				{
-        //					*((OniBool*)data) = (int)value ? true : false;
-        //					return ONI_STATUS_OK;
-        //				}
-        //			}
-        //			break;
-        //		}
+    case ONI_STREAM_PROPERTY_AUTO_WHITE_BALANCE:
+    {
+        if (data && dataSize && *dataSize == sizeof(OniBool))
+        {
+            int getValue = mDevice->mZed.getCameraSettings(sl::VIDEO_SETTINGS::WHITEBALANCE_AUTO);
+            *((OniBool*)data) = (int)getValue ? true : false;
 
-        //		case ONI_STREAM_PROPERTY_AUTO_EXPOSURE:
-        //		{
-        //			if (data && dataSize && *dataSize == sizeof(OniBool) && m_oniType == ONI_SENSOR_COLOR)
-        //			{
-        //				Rs2Error e;
-        //				float value = rs2_get_option((const rs2_options*)m_sensor, RS2_OPTION_ENABLE_AUTO_EXPOSURE, &e);
-        //				if (e.success())
-        //				{
-        //					*((OniBool*)data) = (int)value ? true : false;
-        //					return ONI_STATUS_OK;
-        //				}
-        //			}
-        //			break;
-        //		}
+            return ONI_STATUS_OK;
+        }
+        break;
+    }
 
-        //		case ONI_STREAM_PROPERTY_EXPOSURE:
-        //		{
-        //			if (data && dataSize && *dataSize == sizeof(int) && m_oniType == ONI_SENSOR_COLOR)
-        //			{
-        //				Rs2Error e;
-        //				float value = rs2_get_option((const rs2_options*)m_sensor, RS2_OPTION_EXPOSURE, &e);
-        //				if (e.success())
-        //				{
-        //					*((int*)data) = (int)value;
-        //					return ONI_STATUS_OK;
-        //				}
-        //			}
-        //			break;
-        //		}
+    case ONI_STREAM_PROPERTY_AUTO_EXPOSURE:
+    {
+        if (data && dataSize && *dataSize == sizeof(OniBool))
+        {
+            int getValue = mDevice->mZed.getCameraSettings(sl::VIDEO_SETTINGS::AEC_AGC);
+            *((OniBool*)data) = (int)getValue ? true : false;
 
-        //		case ONI_STREAM_PROPERTY_GAIN:
-        //		{
-        //			if (data && dataSize && *dataSize == sizeof(int) && m_oniType == ONI_SENSOR_COLOR)
-        //			{
-        //				Rs2Error e;
-        //				float value = rs2_get_option((const rs2_options*)m_sensor, RS2_OPTION_GAIN, &e);
-        //				if (e.success())
-        //				{
-        //					*((int*)data) = (int)value;
-        //					return ONI_STATUS_OK;
-        //				}
-        //			}
-        //			break;
-        //		}
+            return ONI_STATUS_OK;
+        }
+        break;
+    }
+
+    case ONI_STREAM_PROPERTY_EXPOSURE:
+    {
+        if (data && dataSize && *dataSize == sizeof(int))
+        {
+            int getValue = mDevice->mZed.getCameraSettings(sl::VIDEO_SETTINGS::EXPOSURE);
+            *((int*)data) = (int)getValue;
+
+            return ONI_STATUS_OK;
+        }
+        break;
+    }
+
+    case ONI_STREAM_PROPERTY_GAIN:
+    {
+        if (data && dataSize && *dataSize == sizeof(int))
+        {
+            int getValue = mDevice->mZed.getCameraSettings(sl::VIDEO_SETTINGS::GAIN);
+            *((int*)data) = (int)getValue;
+
+            return ONI_STATUS_OK;
+        }
+        break;
+    }
 
         //		case XN_STREAM_PROPERTY_GAIN:
         //		{
@@ -522,11 +544,11 @@ OniBool ZedStream::isPropertySupported(int propertyId)
     switch (propertyId)
     {
     //		case ONI_STREAM_PROPERTY_CROPPING:				// OniCropping*
-    //		case ONI_STREAM_PROPERTY_HORIZONTAL_FOV:		// float: radians
-    //		case ONI_STREAM_PROPERTY_VERTICAL_FOV:			// float: radians
+    //      case ONI_STREAM_PROPERTY_HORIZONTAL_FOV:		// float: radians
+    //      case ONI_STREAM_PROPERTY_VERTICAL_FOV:			// float: radians
     //		case ONI_STREAM_PROPERTY_VIDEO_MODE:			// OniVideoMode*
-    //		case ONI_STREAM_PROPERTY_MAX_VALUE:				// int
-    //		case ONI_STREAM_PROPERTY_MIN_VALUE:				// int
+    //      case ONI_STREAM_PROPERTY_MAX_VALUE:				// int
+    //      case ONI_STREAM_PROPERTY_MIN_VALUE:				// int
     //		case ONI_STREAM_PROPERTY_STRIDE:				// int
     //		case ONI_STREAM_PROPERTY_MIRRORING:				// OniBool
     //			return true;
@@ -535,11 +557,11 @@ OniBool ZedStream::isPropertySupported(int propertyId)
     case ONI_STREAM_PROPERTY_NUMBER_OF_FRAMES:		// int
         return false;
 
-        //		case ONI_STREAM_PROPERTY_AUTO_WHITE_BALANCE:	// OniBool
-        //		case ONI_STREAM_PROPERTY_AUTO_EXPOSURE:			// OniBool
-        //		case ONI_STREAM_PROPERTY_EXPOSURE:				// int
-        //		case ONI_STREAM_PROPERTY_GAIN:					// int
-        //			return true;
+    case ONI_STREAM_PROPERTY_AUTO_WHITE_BALANCE:	// OniBool
+    case ONI_STREAM_PROPERTY_AUTO_EXPOSURE:			// OniBool
+    case ONI_STREAM_PROPERTY_EXPOSURE:				// int
+    case ONI_STREAM_PROPERTY_GAIN:					// int
+        return true;
 
         //		case XN_STREAM_PROPERTY_GAIN:
         //        case XN_STREAM_PROPERTY_CONST_SHIFT:

@@ -107,6 +107,25 @@ int main(int argc, char** argv)
 		return 2;
 	}   
 
+    openni::CameraSettings* settings = color.getCameraSettings();
+    bool aeg = settings->getAutoExposureEnabled();
+    printf("Auto gain/exposure: %s\n", aeg?"TRUE":"FALSE");
+    bool awb = settings->getAutoWhiteBalanceEnabled();
+    printf("Auto white/balance: %s\n", awb?"TRUE":"FALSE");
+    int gain = settings->getGain();
+    printf("Gain: %d\n", gain);
+    int exposure = settings->getExposure();
+    printf("Exposure: %d\n", exposure);
+
+    settings->setGain(80);
+    settings->setExposure(30);
+
+    gain = settings->getGain();
+    printf("Gain: %d\n", gain);
+    exposure = settings->getExposure();
+    printf("Exposure: %d\n", exposure);
+
+
 	SampleViewer sampleViewer("Simple Viewer", device, depth, color);
 
 	rc = sampleViewer.init(argc, argv);
