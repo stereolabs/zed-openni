@@ -363,15 +363,15 @@ OniStatus ZedStream::getProperty(int propertyId, void* data, int* dataSize)
         break;
     }
 
-        //		case ONI_STREAM_PROPERTY_MIRRORING:
-        //		{
-        //			if (data && dataSize && *dataSize == sizeof(OniBool))
-        //			{
-        //				*((OniBool*)data) = false;
-        //				return ONI_STATUS_OK;
-        //			}
-        //			break;
-        //		}
+    case ONI_STREAM_PROPERTY_MIRRORING:
+    {
+        if (data && dataSize && *dataSize == sizeof(OniBool))
+        {
+            *((OniBool*)data) = false;
+            return ONI_STATUS_OK;
+        }
+        break;
+    }
 
     case ONI_STREAM_PROPERTY_AUTO_WHITE_BALANCE:
     {
@@ -421,86 +421,6 @@ OniStatus ZedStream::getProperty(int propertyId, void* data, int* dataSize)
         break;
     }
 
-        //		case XN_STREAM_PROPERTY_GAIN:
-        //		{
-        //			if (data && dataSize && *dataSize == sizeof(unsigned long long) && m_oniType == ONI_SENSOR_DEPTH)
-        //			{
-        //				*((unsigned long long*)data) = GAIN_VAL;
-        //				return ONI_STATUS_OK;
-        //			}
-        //			break;
-        //		}
-
-        //        case XN_STREAM_PROPERTY_CONST_SHIFT:
-        //		{
-        //			if (data && dataSize && *dataSize == sizeof(unsigned long long) && m_oniType == ONI_SENSOR_DEPTH)
-        //			{
-        //				*((unsigned long long*)data) = CONST_SHIFT_VAL;
-        //				return ONI_STATUS_OK;
-        //			}
-        //			break;
-        //		}
-
-        //        case XN_STREAM_PROPERTY_MAX_SHIFT:
-        //		{
-        //			if (data && dataSize && *dataSize == sizeof(unsigned long long) && m_oniType == ONI_SENSOR_DEPTH)
-        //			{
-        //				*((unsigned long long*)data) = MAX_SHIFT_VAL;
-        //				return ONI_STATUS_OK;
-        //			}
-        //			break;
-        //		}
-
-        //        case XN_STREAM_PROPERTY_PARAM_COEFF:
-        //		{
-        //			if (data && dataSize && *dataSize == sizeof(unsigned long long) && m_oniType == ONI_SENSOR_DEPTH)
-        //			{
-        //				*((unsigned long long*)data) = PARAM_COEFF_VAL;
-        //				return ONI_STATUS_OK;
-        //			}
-        //			break;
-        //		}
-
-        //        case XN_STREAM_PROPERTY_SHIFT_SCALE:
-        //		{
-        //			if (data && dataSize && *dataSize == sizeof(unsigned long long) && m_oniType == ONI_SENSOR_DEPTH)
-        //			{
-        //				*((unsigned long long*)data) = SHIFT_SCALE_VAL;
-        //				return ONI_STATUS_OK;
-        //			}
-        //			break;
-        //		}
-
-        //        case XN_STREAM_PROPERTY_ZERO_PLANE_DISTANCE:
-        //		{
-        //			if (data && dataSize && *dataSize == sizeof(unsigned long long) && m_oniType == ONI_SENSOR_DEPTH)
-        //			{
-        //				*((unsigned long long*)data) = ZERO_PLANE_DISTANCE_VAL;
-        //				return ONI_STATUS_OK;
-        //			}
-        //			break;
-        //		}
-
-        //        case XN_STREAM_PROPERTY_ZERO_PLANE_PIXEL_SIZE:
-        //		{
-        //			if (data && dataSize && *dataSize == sizeof(double) && m_oniType == ONI_SENSOR_DEPTH)
-        //			{
-        //				*((double*)data) = ZERO_PLANE_PIXEL_SIZE_VAL;
-        //				return ONI_STATUS_OK;
-        //			}
-        //			break;
-        //		}
-
-        //        case XN_STREAM_PROPERTY_EMITTER_DCMOS_DISTANCE:
-        //		{
-        //			if (data && dataSize && *dataSize == sizeof(double) && m_oniType == ONI_SENSOR_DEPTH)
-        //			{
-        //				*((double*)data) = EMITTER_DCMOS_DISTANCE_VAL;
-        //				return ONI_STATUS_OK;
-        //			}
-        //			break;
-        //		}
-
     case XN_STREAM_PROPERTY_S2D_TABLE:
     {
         if (data && dataSize && mOniType == ONI_SENSOR_DEPTH)
@@ -543,16 +463,15 @@ OniBool ZedStream::isPropertySupported(int propertyId)
 
     switch (propertyId)
     {
-    //		case ONI_STREAM_PROPERTY_CROPPING:				// OniCropping*
-    //      case ONI_STREAM_PROPERTY_HORIZONTAL_FOV:		// float: radians
-    //      case ONI_STREAM_PROPERTY_VERTICAL_FOV:			// float: radians
-    //		case ONI_STREAM_PROPERTY_VIDEO_MODE:			// OniVideoMode*
-    //      case ONI_STREAM_PROPERTY_MAX_VALUE:				// int
-    //      case ONI_STREAM_PROPERTY_MIN_VALUE:				// int
-    //		case ONI_STREAM_PROPERTY_STRIDE:				// int
-    //		case ONI_STREAM_PROPERTY_MIRRORING:				// OniBool
-    //			return true;
-
+    case ONI_STREAM_PROPERTY_CROPPING:				// OniCropping*
+    case ONI_STREAM_PROPERTY_HORIZONTAL_FOV:		// float: radians
+    case ONI_STREAM_PROPERTY_VERTICAL_FOV:			// float: radians
+    case ONI_STREAM_PROPERTY_VIDEO_MODE:			// OniVideoMode*
+    case ONI_STREAM_PROPERTY_MAX_VALUE:				// int
+    case ONI_STREAM_PROPERTY_MIN_VALUE:				// int
+    case ONI_STREAM_PROPERTY_STRIDE:				// int
+    case ONI_STREAM_PROPERTY_MIRRORING:				// OniBool
+        return true;
 
     case ONI_STREAM_PROPERTY_NUMBER_OF_FRAMES:		// int
         return false;
@@ -563,14 +482,6 @@ OniBool ZedStream::isPropertySupported(int propertyId)
     case ONI_STREAM_PROPERTY_GAIN:					// int
         return true;
 
-        //		case XN_STREAM_PROPERTY_GAIN:
-        //        case XN_STREAM_PROPERTY_CONST_SHIFT:
-        //        case XN_STREAM_PROPERTY_MAX_SHIFT:
-        //        case XN_STREAM_PROPERTY_PARAM_COEFF:
-        //        case XN_STREAM_PROPERTY_SHIFT_SCALE:
-        //        case XN_STREAM_PROPERTY_ZERO_PLANE_DISTANCE:
-        //        case XN_STREAM_PROPERTY_ZERO_PLANE_PIXEL_SIZE:
-        //        case XN_STREAM_PROPERTY_EMITTER_DCMOS_DISTANCE:
     case XN_STREAM_PROPERTY_S2D_TABLE:
     case XN_STREAM_PROPERTY_D2S_TABLE:
         return true;

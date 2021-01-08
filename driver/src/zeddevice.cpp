@@ -1,4 +1,5 @@
 #include "zeddevice.hpp"
+#include <chrono>
 
 #define SENSOR_COUNT 3
 
@@ -154,8 +155,13 @@ void ZedDevice::grabThreadFunc()
     mThreadRunning = false;
 }
 
-void ZedDevice::publishFrame(std::shared_ptr<ZedStream> stream, int frameId)
+//#define MEASURE_PUB_TIME
+void ZedDevice::publishFrame(std::shared_ptr<ZedStream> stream, int frameIdx)
 {
+#ifdef MEASURE_PUB_TIME
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+#endif
+
     OniSensorType sensType = stream->getOniType();
 
     sl::Mat zedFrame;
@@ -166,6 +172,9 @@ void ZedDevice::publishFrame(std::shared_ptr<ZedStream> stream, int frameId)
     switch(sensType)
     {
     case ONI_SENSOR_DEPTH:
+#ifdef MEASURE_PUB_TIME
+        zedLogDebug("Publishing Depth: ");
+#endif
         if(mRightMeasure)
             ret = mZed.retrieveMeasure( zedFrame, sl::MEASURE::DEPTH_U16_MM_RIGHT);
         else
@@ -173,6 +182,9 @@ void ZedDevice::publishFrame(std::shared_ptr<ZedStream> stream, int frameId)
         frameData = zedFrame.getPtr<sl::ushort1>();
         break;
     case ONI_SENSOR_COLOR:
+#ifdef MEASURE_PUB_TIME
+        zedLogDebug("Publishing Color: ");
+#endif
         if(mRightMeasure)
             ret = mZed.retrieveImage( zedFrame, sl::VIEW::RIGHT );
         else
@@ -196,19 +208,16 @@ void ZedDevice::publishFrame(std::shared_ptr<ZedStream> stream, int frameId)
 
     ZedStreamProfileInfo spi = stream->getProfile();
 
-    OniFrame* oniFrame;
+    OniFrame* oniFrame = stream->getServices().acquireFrame();
+    if (!oniFrame)
     {
-        oniFrame = stream->getServices().acquireFrame();
-        if (!oniFrame)
-        {
-            zedLogError("acquireFrame failed");
-            return;
-        }
+        zedLogError("acquireFrame failed");
+        return;
     }
 
     oniFrame->sensorType = sensType;
     oniFrame->timestamp = zedFrame.timestamp.getMicroseconds();
-    oniFrame->frameIndex = frameId;
+    oniFrame->frameIndex = frameIdx;
 
     OniVideoMode mode = stream->getVideoMode();
 
@@ -259,6 +268,7 @@ void ZedDevice::publishFrame(std::shared_ptr<ZedStream> stream, int frameId)
             ch[++chIdx] = (*bgra).r;
             ++bgra;
         }
+
 #if 0
         zedLogDebug("[%lu] Color ready", oniFrame->timestamp);
 #endif
@@ -266,7 +276,14 @@ void ZedDevice::publishFrame(std::shared_ptr<ZedStream> stream, int frameId)
     }
 
     stream->getServices().releaseFrame(oniFrame);
+#ifdef MEASURE_PUB_TIME
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+    double elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
+    zedLogDebug("\tElapsed %g sec", elapsed/1e6);
+#endif
 }
+
 
 OniStatus ZedDevice::startCamera(const ZedStreamProfileInfo *spi)
 {
