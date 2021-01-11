@@ -25,6 +25,7 @@ if(UNIX)
 endif()
 
 add_executable( ${PROJECT_NAME}
+    ${COMMON_HDR_FILES}
     ${HDR_FILES}
     ${SRC_FILES}
 )

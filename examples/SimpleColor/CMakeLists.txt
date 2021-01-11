@@ -37,6 +37,7 @@ if( OpenCV_FOUND )
   include_directories( ${OpenCV_INCLUDE_DIRS} )
 
   add_executable( ${PROJECT_NAME}
+      ${COMMON_HDR_FILES}
       ${HDR_FILES}
       ${SRC_FILES})
   # Dependencies
