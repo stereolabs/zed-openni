@@ -1,22 +1,22 @@
-#include "device.h"
+#include "pointcloudviz.h"
 #include "util.h"
 
 // Constructor
-Device::Device()
+PointcloudViz::PointcloudViz()
 {
     // Initialize
     initialize();
 }
 
 // Destructor
-Device::~Device()
+PointcloudViz::~PointcloudViz()
 {
     // Finalize
     finalize();
 }
 
 // Processing
-void Device::run()
+void PointcloudViz::run()
 {
     // Main Loop
     while( !viewer.wasStopped() ){
@@ -38,7 +38,7 @@ void Device::run()
 }
 
 // Initialize
-void Device::initialize()
+void PointcloudViz::initialize()
 {
     cv::setUseOptimized( true );
 
@@ -59,14 +59,14 @@ void Device::initialize()
 }
 
 // Initialize Device
-inline void Device::initializeDevice()
+inline void PointcloudViz::initializeDevice()
 {
     // Open Device
     OPENNI_CHECK( device.open( openni::ANY_DEVICE ) );
 }
 
 // Initialize Depth
-inline void Device::initializeDepth()
+inline void PointcloudViz::initializeDepth()
 {
     // Create Stream
     OPENNI_CHECK( depth_stream.create( device, openni::SENSOR_DEPTH ) );
@@ -76,7 +76,7 @@ inline void Device::initializeDepth()
 }
 
 // Initialize Color
-inline void Device::initializeColor()
+inline void PointcloudViz::initializeColor()
 {
     // Create Stream
     OPENNI_CHECK( color_stream.create( device, openni::SENSOR_COLOR ) );
@@ -86,7 +86,7 @@ inline void Device::initializeColor()
 }
 
 // Initialize Point Cloud
-inline void Device::initializePointCloud()
+inline void PointcloudViz::initializePointCloud()
 {
     // Create Window
     viewer = cv::viz::Viz3d( "ZED Point Cloud" );
@@ -96,13 +96,13 @@ inline void Device::initializePointCloud()
 }
 
 // Keyboard Callback Function
-void Device::keyboardCallback( const cv::viz::KeyboardEvent& event, void* cookie )
+void PointcloudViz::keyboardCallback( const cv::viz::KeyboardEvent& event, void* cookie )
 {
     // Exit Viewer when Pressed ESC key
     if( (event.code == 'q' || event.code=='Q' || event.code==27) && event.action == cv::viz::KeyboardEvent::Action::KEY_DOWN ){
 
         // Retrieve Viewer
-        cv::viz::Viz3d viewer = static_cast<Device*>( cookie )->viewer;
+        cv::viz::Viz3d viewer = static_cast<PointcloudViz*>( cookie )->viewer;
 
         // Close Viewer
         viewer.close();
@@ -110,14 +110,14 @@ void Device::keyboardCallback( const cv::viz::KeyboardEvent& event, void* cookie
 };
 
 // Finalize
-void Device::finalize()
+void PointcloudViz::finalize()
 {
     // Close Windows
     cv::destroyAllWindows();
 }
 
 // Update Data
-void Device::update()
+void PointcloudViz::update()
 {
     // Update Color
     updateColor();
@@ -127,7 +127,7 @@ void Device::update()
 }
 
 // Update Color
-inline void Device::updateColor()
+inline void PointcloudViz::updateColor()
 {
     // Update Frame
     OPENNI_CHECK( color_stream.readFrame( &color_frame ) );
@@ -138,7 +138,7 @@ inline void Device::updateColor()
 }
 
 // Update Depth
-inline void Device::updateDepth()
+inline void PointcloudViz::updateDepth()
 {
     // Update Frame
     OPENNI_CHECK( depth_stream.readFrame( &depth_frame ) );
@@ -149,7 +149,7 @@ inline void Device::updateDepth()
 }
 
 // Draw Color
-inline void Device::drawColor()
+inline void PointcloudViz::drawColor()
 {
     // Create cv::Mat form Color Frame
     color_mat = cv::Mat( height, width, CV_8UC3, const_cast<void*>( color_frame.getData() ) );
@@ -159,7 +159,7 @@ inline void Device::drawColor()
 }
 
 // Draw Data
-void Device::draw()
+void PointcloudViz::draw()
 {
     // Draw color
     drawColor();
@@ -169,7 +169,7 @@ void Device::draw()
 }
 
 // Draw Point Cloud
-inline void Device::drawPointCloud()
+inline void PointcloudViz::drawPointCloud()
 {
     if( !depth_frame.isValid() ){
         return;
@@ -201,14 +201,14 @@ inline void Device::drawPointCloud()
 }
 
 // Show Data
-void Device::show()
+void PointcloudViz::show()
 {
     // Show Point Cloud
     showPointCloud();
 }
 
 // Show Point Cloud
-inline void Device::showPointCloud()
+inline void PointcloudViz::showPointCloud()
 {
     if( vertices_mat.empty() ){
         return;

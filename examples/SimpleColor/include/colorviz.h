@@ -1,10 +1,10 @@
-#ifndef __DEVICE__
-#define __DEVICE__
+#ifndef COLORVIZ_HPP
+#define COLORVIZ_HPP
 
 #include <OpenNI.h>
 #include <opencv2/opencv.hpp>
 
-class Device
+class ColorViz
 {
 private:
     // Device
@@ -20,10 +20,10 @@ private:
 
 public:
     // Constructor
-    Device();
+    ColorViz();
 
     // Destructor
-    ~Device();
+    ~ColorViz();
 
     // Processing
     void run();
@@ -60,4 +60,4 @@ private:
     inline void showColor();
 };
 
-#endif // __DEVICE__
+#endif // COLORVIZ_HPP

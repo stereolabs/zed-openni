@@ -1,13 +1,13 @@
 #include <iostream>
 #include <sstream>
 
-#include "device.h"
+#include "colorviz.h"
 
 int main( int argc, char* argv[] )
 {
     try{
-        Device device;
-        device.run();
+        ColorViz viz;
+        viz.run();
     } catch( std::exception& ex ){
         std::cout << ex.what() << std::endl;
     }

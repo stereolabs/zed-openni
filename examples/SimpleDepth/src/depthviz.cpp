@@ -1,22 +1,22 @@
-#include "device.h"
+#include "depthviz.h"
 #include "util.h"
 
 // Constructor
-Device::Device()
+DepthViz::DepthViz()
 {
     // Initialize
     initialize();
 }
 
 // Destructor
-Device::~Device()
+DepthViz::~DepthViz()
 {
     // Finalize
     finalize();
 }
 
 // Processing
-void Device::run()
+void DepthViz::run()
 {
     // Main Loop
     while( true ){
@@ -38,7 +38,7 @@ void Device::run()
 }
 
 // Initialize
-void Device::initialize()
+void DepthViz::initialize()
 {
     cv::setUseOptimized( true );
 
@@ -56,7 +56,7 @@ void Device::initialize()
 }
 
 // Initialize Device
-inline void Device::initializeDevice()
+inline void DepthViz::initializeDevice()
 {
     // Open Device
     OPENNI_CHECK( device.open( openni::ANY_DEVICE ) );
@@ -67,7 +67,7 @@ inline void Device::initializeDevice()
 }
 
 // Initialize Depth
-inline void Device::initializeDepth()
+inline void DepthViz::initializeDepth()
 {
     // Create Stream
     OPENNI_CHECK( depth_stream.create( device, openni::SENSOR_DEPTH ) );
@@ -77,21 +77,21 @@ inline void Device::initializeDepth()
 }
 
 // Finalize
-void Device::finalize()
+void DepthViz::finalize()
 {
     // Close Windows
     cv::destroyAllWindows();
 }
 
 // Update Data
-void Device::update()
+void DepthViz::update()
 {
     // Update Depth
     updateDepth();
 }
 
 // Update Depth
-inline void Device::updateDepth()
+inline void DepthViz::updateDepth()
 {
     // Update Frame
     OPENNI_CHECK( depth_stream.readFrame( &depth_frame ) );
@@ -102,28 +102,28 @@ inline void Device::updateDepth()
 }
 
 // Draw Data
-void Device::draw()
+void DepthViz::draw()
 {
     // Draw Depth
     drawDepth();
 }
 
 // Draw Depth
-inline void Device::drawDepth()
+inline void DepthViz::drawDepth()
 {
     // Create cv::Mat form Depth Frame
     depth_mat = cv::Mat( depth_height, depth_width, CV_16UC1, const_cast<void*>( depth_frame.getData() ) );
 }
 
 // Show Data
-void Device::show()
+void DepthViz::show()
 {
     // Show Depth
     showDepth();
 }
 
 // Show Depth
-inline void Device::showDepth()
+inline void DepthViz::showDepth()
 {
     if( depth_mat.empty() ){
         return;

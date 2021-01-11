@@ -1,11 +1,11 @@
-#ifndef __DEVICE__
-#define __DEVICE__
+#ifndef POINTCLOUDVIZ_HPP
+#define POINTCLOUDVIZ_HPP
 
 #include <OpenNI.h>
 #include <opencv2/opencv.hpp>
 #include <opencv2/viz.hpp>
 
-class Device
+class PointcloudViz
 {
 private:
     // Device
@@ -27,10 +27,10 @@ private:
 
 public:
     // Constructor
-    Device();
+    PointcloudViz();
 
     // Destructor
-    ~Device();
+    ~PointcloudViz();
 
     // Processing
     void run();
@@ -82,4 +82,4 @@ private:
     inline void showPointCloud();
 };
 
-#endif // __DEVICE__
+#endif // POINTCLOUDVIZ_HPP

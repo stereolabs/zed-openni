@@ -1,22 +1,22 @@
-#include "device.h"
+#include "registeredviz.h"
 #include "util.h"
 
 // Constructor
-Device::Device()
+RegisteredViz::RegisteredViz()
 {
     // Initialize
     initialize();
 }
 
 // Destructor
-Device::~Device()
+RegisteredViz::~RegisteredViz()
 {
     // Finalize
     finalize();
 }
 
 // Processing
-void Device::run()
+void RegisteredViz::run()
 {
     // Main Loop
     while( true ){
@@ -38,7 +38,7 @@ void Device::run()
 }
 
 // Initialize
-void Device::initialize()
+void RegisteredViz::initialize()
 {
     cv::setUseOptimized( true );
 
@@ -56,7 +56,7 @@ void Device::initialize()
 }
 
 // Initialize Device
-inline void Device::initializeDevice()
+inline void RegisteredViz::initializeDevice()
 {
     // Open Device
     OPENNI_CHECK( device.open( openni::ANY_DEVICE ) );
@@ -67,7 +67,7 @@ inline void Device::initializeDevice()
 }
 
 // Initialize Color
-inline void Device::initializeColor()
+inline void RegisteredViz::initializeColor()
 {
     // Create Stream
     OPENNI_CHECK( color_stream.create( device, openni::SENSOR_COLOR ) );
@@ -77,7 +77,7 @@ inline void Device::initializeColor()
 }
 
 // Initialize Depth
-inline void Device::initializeDepth()
+inline void RegisteredViz::initializeDepth()
 {
     // Create Stream
     OPENNI_CHECK( depth_stream.create( device, openni::SENSOR_DEPTH ) );
@@ -87,14 +87,14 @@ inline void Device::initializeDepth()
 }
 
 // Finalize
-void Device::finalize()
+void RegisteredViz::finalize()
 {
     // Close Windows
     cv::destroyAllWindows();
 }
 
 // Update Data
-void Device::update()
+void RegisteredViz::update()
 {
     // Update Color
     updateColor();
@@ -104,7 +104,7 @@ void Device::update()
 }
 
 // Update Color
-inline void Device::updateColor()
+inline void RegisteredViz::updateColor()
 {
     // Update Frame
     OPENNI_CHECK( color_stream.readFrame( &color_frame ) );
@@ -115,7 +115,7 @@ inline void Device::updateColor()
 }
 
 // Update Depth
-inline void Device::updateDepth()
+inline void RegisteredViz::updateDepth()
 {
     // Update Frame
     OPENNI_CHECK( depth_stream.readFrame( &depth_frame ) );
@@ -126,7 +126,7 @@ inline void Device::updateDepth()
 }
 
 // Draw Data
-void Device::draw()
+void RegisteredViz::draw()
 {
     // Draw Color
     drawColor();
@@ -136,7 +136,7 @@ void Device::draw()
 }
 
 // Draw Color
-inline void Device::drawColor()
+inline void RegisteredViz::drawColor()
 {
     // Create cv::Mat form Color Frame
     color_mat = cv::Mat( color_height, color_width, CV_8UC3, const_cast<void*>( color_frame.getData() ) );
@@ -146,14 +146,14 @@ inline void Device::drawColor()
 }
 
 // Draw Depth
-inline void Device::drawDepth()
+inline void RegisteredViz::drawDepth()
 {
     // Create cv::Mat form Depth Frame
     depth_mat = cv::Mat( depth_height, depth_width, CV_16UC1, const_cast<void*>( depth_frame.getData() ) );
 }
 
 // Show Data
-void Device::show()
+void RegisteredViz::show()
 {
     // Show Color
     showColor();
@@ -163,7 +163,7 @@ void Device::show()
 }
 
 // Show Color
-inline void Device::showColor()
+inline void RegisteredViz::showColor()
 {
     if( color_mat.empty() ){
         return;
@@ -174,7 +174,7 @@ inline void Device::showColor()
 }
 
 // Show Depth
-inline void Device::showDepth()
+inline void RegisteredViz::showDepth()
 {
     if( depth_mat.empty() ){
         return;

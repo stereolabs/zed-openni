@@ -4,18 +4,23 @@
 #include <OpenNI.h>
 #include <opencv2/opencv.hpp>
 
-class Device
+class RegisteredViz
 {
 private:
     // Device
     openni::Device device;
-    openni::VideoStream depth_stream;
     openni::VideoStream color_stream;
+    openni::VideoStream depth_stream;
+
+    // Color Buffer
+    openni::VideoFrameRef color_frame;
+    cv::Mat color_mat;
+    uint32_t color_width = 640;
+    uint32_t color_height = 480;
+    uint32_t color_fps = 30;
 
     // Depth Buffer
     openni::VideoFrameRef depth_frame;
-    // Depth Buffer
-    openni::VideoFrameRef color_frame;
     cv::Mat depth_mat;
     uint32_t depth_width = 640;
     uint32_t depth_height = 480;
@@ -23,10 +28,10 @@ private:
 
 public:
     // Constructor
-    Device();
+    RegisteredViz();
 
     // Destructor
-    ~Device();
+    ~RegisteredViz();
 
     // Processing
     void run();
@@ -38,6 +43,9 @@ private:
     // Initialize Device
     inline void initializeDevice();
 
+    // Initialize Color
+    inline void initializeColor();
+
     // Initialize Depth
     inline void initializeDepth();
 
@@ -47,17 +55,26 @@ private:
     // Update Data
     void update();
 
+    // Update Color
+    inline void updateColor();
+
     // Update Depth
     inline void updateDepth();
 
     // Draw Data
     void draw();
 
+    // Draw Color
+    inline void drawColor();
+
     // Draw Depth
     inline void drawDepth();
 
     // Show Data
     void show();
+
+    // Show Color
+    inline void showColor();
 
     // Show Depth
     inline void showDepth();

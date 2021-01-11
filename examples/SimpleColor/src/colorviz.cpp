@@ -1,22 +1,22 @@
-#include "device.h"
+#include "colorviz.h"
 #include "util.h"
 
 // Constructor
-Device::Device()
+ColorViz::ColorViz()
 {
     // Initialize
     initialize();
 }
 
 // Destructor
-Device::~Device()
+ColorViz::~ColorViz()
 {
     // Finalize
     finalize();
 }
 
 // Processing
-void Device::run()
+void ColorViz::run()
 {
     // Main Loop
     while( true ){
@@ -38,7 +38,7 @@ void Device::run()
 }
 
 // Initialize
-void Device::initialize()
+void ColorViz::initialize()
 {
     cv::setUseOptimized( true );
 
@@ -53,14 +53,14 @@ void Device::initialize()
 }
 
 // Initialize Device
-inline void Device::initializeDevice()
+inline void ColorViz::initializeDevice()
 {
     // Open Device
     OPENNI_CHECK( device.open( openni::ANY_DEVICE ) );
 }
 
 // Initialize Color
-inline void Device::initializeColor()
+inline void ColorViz::initializeColor()
 {
     // Create Stream
     OPENNI_CHECK( color_stream.create( device, openni::SENSOR_COLOR ) );
@@ -70,21 +70,21 @@ inline void Device::initializeColor()
 }
 
 // Finalize
-void Device::finalize()
+void ColorViz::finalize()
 {
     // Close Windows
     cv::destroyAllWindows();
 }
 
 // Update Data
-void Device::update()
+void ColorViz::update()
 {
     // Update Color
     updateColor();
 }
 
 // Update Color
-inline void Device::updateColor()
+inline void ColorViz::updateColor()
 {
     // Update Frame
     OPENNI_CHECK( color_stream.readFrame( &color_frame ) );
@@ -95,14 +95,14 @@ inline void Device::updateColor()
 }
 
 // Draw Data
-void Device::draw()
+void ColorViz::draw()
 {
     // Draw Color
     drawColor();
 }
 
 // Draw Color
-inline void Device::drawColor()
+inline void ColorViz::drawColor()
 {
     // Create cv::Mat form Color Frame
     color_mat = cv::Mat( color_height, color_width, CV_8UC3, const_cast<void*>( color_frame.getData() ) );
@@ -112,14 +112,14 @@ inline void Device::drawColor()
 }
 
 // Show Data
-void Device::show()
+void ColorViz::show()
 {
     // Show Color
     showColor();
 }
 
 // Show Color
-inline void Device::showColor()
+inline void ColorViz::showColor()
 {
     if( color_mat.empty() ){
         return;
