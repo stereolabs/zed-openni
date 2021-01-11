@@ -50,6 +50,9 @@ void Device::initialize()
 
     // Initialize Depth
     initializeDepth();
+
+    // Initialize Color
+    initializeDepth();
 }
 
 // Initialize Device
@@ -57,6 +60,10 @@ inline void Device::initializeDevice()
 {
     // Open Device
     OPENNI_CHECK( device.open( openni::ANY_DEVICE ) );
+
+    // Set Registration Mode
+    // Note: this is not required by ZED driver because depth and color are automatically registered
+    OPENNI_CHECK( device.setImageRegistrationMode( openni::ImageRegistrationMode::IMAGE_REGISTRATION_DEPTH_TO_COLOR ) );
 }
 
 // Initialize Depth
@@ -64,15 +71,6 @@ inline void Device::initializeDepth()
 {
     // Create Stream
     OPENNI_CHECK( depth_stream.create( device, openni::SENSOR_DEPTH ) );
-
-    /*
-    // Set Video Mode
-    openni::VideoMode depth_mode;
-    depth_mode.setResolution( depth_width, depth_height );
-    depth_mode.setFps( depth_fps );
-    depth_mode.setPixelFormat( openni::PixelFormat::PIXEL_FORMAT_DEPTH_1_MM );
-    OPENNI_CHECK( depth_stream.setVideoMode( depth_mode ) );
-    */
 
     // Start Stream
     OPENNI_CHECK( depth_stream.start() );

@@ -11,12 +11,15 @@ private:
     // Device
     openni::Device device;
     openni::VideoStream depth_stream;
+    openni::VideoStream color_stream;
 
     // Depth Buffer
     openni::VideoFrameRef depth_frame;
-    uint32_t depth_width = 640;
-    uint32_t depth_height = 480;
-    uint32_t depth_fps = 30;
+    openni::VideoFrameRef color_frame;
+    cv::Mat color_mat;
+    uint32_t width = 640;
+    uint32_t height = 480;
+    uint32_t fps = 30;
 
     // Point Cloud Buffer
     cv::viz::Viz3d viewer;
@@ -42,6 +45,9 @@ private:
     // Initialize Depth
     inline void initializeDepth();
 
+    // Initialize Color
+    inline void initializeColor();
+
     // Initialize Point Cloud
     inline void initializePointCloud();
 
@@ -57,8 +63,14 @@ private:
     // Update Depth
     inline void updateDepth();
 
+    // Update Color
+    inline void updateColor();
+
     // Draw Data
     void draw();
+
+    // Draw Color
+    inline void drawColor();
 
     // Draw Point Cloud
     inline void drawPointCloud();

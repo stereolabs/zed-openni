@@ -10,9 +10,12 @@ private:
     // Device
     openni::Device device;
     openni::VideoStream depth_stream;
+    openni::VideoStream color_stream;
 
     // Depth Buffer
     openni::VideoFrameRef depth_frame;
+    // Depth Buffer
+    openni::VideoFrameRef color_frame;
     cv::Mat depth_mat;
     uint32_t depth_width = 640;
     uint32_t depth_height = 480;

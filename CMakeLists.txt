@@ -67,7 +67,10 @@ endif()
 ###########################################################################
 ### Modules
 ###########################################################################
+# Driver
 add_subdirectory(driver)
+
+#Examples
 if(COMPILE_EXAMPLES)
     add_subdirectory(examples)
 endif()

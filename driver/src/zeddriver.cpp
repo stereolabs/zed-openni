@@ -192,8 +192,22 @@ DeviceBase* ZedDriver::deviceOpen(const char* uri, const char* mode)
 void ZedDriver::deviceClose(DeviceBase* deviceBase)
 {
 #ifndef NDEBUG
-    zedLogFunc("");
+    zedLogFunc("ptr=%p", deviceBase);
 #endif
+
+    if (deviceBase)
+    {
+        std::lock_guard<std::mutex> lock(mDevicesMutex);
+
+        ZedDevice* deviceObj = (ZedDevice*)deviceBase;
+
+        unsigned int serial = deviceObj->mZedProp.serial_number;
+#ifndef NDEBUG
+    zedLogDebug("Closing ZED with s/n %u", serial);
+#endif
+
+        mDevices[serial]->shutdown();
+    }
 }
 
 OniStatus ZedDriver::tryDevice(const char* uri)

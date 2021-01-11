@@ -37,21 +37,15 @@ protected:
     int getCurrentProfileId(std::vector<ZedStreamProfileInfo>* profiles);
     int getProfileId(const std::vector<ZedStreamProfileInfo>* profiles, int width, int height, int fps);
 
-    //void changeVideoMode(const ZedStreamProfileInfo* spi);
-
     void publishFrame(std::shared_ptr<ZedStream> stream, int frameId);
-
     void grabThreadFunc();
 
-    OniStatus startCamera(const ZedStreamProfileInfo* spi);
-    void stopCamera();
-    //OniStatus restartCamera(const ZedStreamProfileInfo* spi);
     bool hasEnabledStreams();
 
 protected:
     std::mutex mStateMutex;
     std::mutex mStreamsMutex;
-    std::mutex mCamMutex;
+    std::mutex mCloseMutex;
 
     OniDeviceInfo mInfo;
     std::vector<OniSensorInfo> mSensorInfo;

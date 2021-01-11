@@ -33,10 +33,14 @@ void ZedDevice::shutdown()
     if(mThreadRunning)
     {
         mStopThread = true;
+
+        std::lock_guard<std::mutex> lock(mCloseMutex);
+
         if( mGrabThread->joinable() )
         {
             mGrabThread->join();
         }
+         mZed.close();
     }
 }
 
@@ -123,10 +127,11 @@ void ZedDevice::grabThreadFunc()
         {
             if(mVerbose)
                 zedLogDebug("Grab thread stopped");
+            mThreadRunning=false;
             break;
         }
 
-        std::lock_guard<std::mutex> lock(mCamMutex);
+        std::lock_guard<std::mutex> lock(mCloseMutex);
 
         ret = mZed.grab(mZedRtParams);
         if(ret!=sl::ERROR_CODE::SUCCESS)
@@ -284,74 +289,6 @@ void ZedDevice::publishFrame(std::shared_ptr<ZedStream> stream, int frameIdx)
     zedLogDebug("\tElapsed %g sec", elapsed/1e6);
 #endif
 }
-
-
-OniStatus ZedDevice::startCamera(const ZedStreamProfileInfo *spi)
-{
-    if(mVerbose)
-        zedLogFunc("");
-
-    // ----> Retrieve configuration
-    sl::InitParameters initParams;
-    {
-        initParams.input.setFromSerialNumber(mZedProp.serial_number);
-        initParams.camera_fps = spi->framerate;
-        initParams.camera_resolution = spi->zedRes;
-        initParams.coordinate_units = sl::UNIT::MILLIMETER;
-        initParams.depth_maximum_distance = 9999.f;
-    }
-    // <---- Retrieve configuration
-
-    // ----> Initialize ZED
-    sl::ERROR_CODE ret = mZed.open( initParams );
-    if(ret!=sl::ERROR_CODE::SUCCESS)
-    {
-        zedLogError("Error opening ZED camera: %s", sl::toString(ret).c_str());
-        return ONI_STATUS_ERROR;
-    }
-    zedLogDebug("ZED Camera connected");
-    // <---- Initialize ZED
-
-    return ONI_STATUS_OK;
-}
-
-void ZedDevice::stopCamera()
-{
-    if(mVerbose)
-        zedLogFunc("");
-
-    if(mZed.isOpened())
-    {
-        mZed.close();
-    }
-}
-
-//OniStatus ZedDevice::restartCamera(const ZedStreamProfileInfo *spi)
-//{
-//    zedLogFunc("");
-
-//    stopCamera();
-
-//    startCamera(spi);
-
-//    bool hasStreams = false;
-//    for( auto iter = mCreatedStreams.begin(); iter!=mCreatedStreams.end(); iter++ )
-//    {
-//        hasStreams=true;
-
-//        std::shared_ptr<ZedStream> streamPtr = *iter;
-
-//        int sensorId = streamPtr->getSensorId();
-//        const std::vector<ZedStreamProfileInfo>* profiles = streamPtr->getProfiles();
-//        int profileId = getProfileId( profiles, spi->width, spi->height, spi->framerate);
-
-//        if(streamPtr->initialize(shared_from_this(), sensorId, profileId, profiles ) != ONI_STATUS_OK)
-//        {
-//            zedLogError("ZedStream::initialize failed");
-//            return ONI_STATUS_ERROR;
-//        }
-//    }
-//}
 
 bool ZedDevice::hasEnabledStreams()
 {

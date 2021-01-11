@@ -48,6 +48,9 @@ void Device::initialize()
     // Initialize Device
     initializeDevice();
 
+    // Initialize Color
+    initializeColor();
+
     // Initialize Depth
     initializeDepth();
 
@@ -72,6 +75,16 @@ inline void Device::initializeDepth()
     OPENNI_CHECK( depth_stream.start() );
 }
 
+// Initialize Color
+inline void Device::initializeColor()
+{
+    // Create Stream
+    OPENNI_CHECK( color_stream.create( device, openni::SENSOR_COLOR ) );
+
+    // Start Stream
+    OPENNI_CHECK( color_stream.start() );
+}
+
 // Initialize Point Cloud
 inline void Device::initializePointCloud()
 {
@@ -80,9 +93,6 @@ inline void Device::initializePointCloud()
 
     // Register Keyboard Callback Function
     viewer.registerKeyboardCallback( &keyboardCallback, this );
-
-    // Show Coordinate System
-    viewer.showWidget( "CoordinateSystem", cv::viz::WCameraPosition( 0.5 ) );
 }
 
 // Keyboard Callback Function
@@ -109,8 +119,22 @@ void Device::finalize()
 // Update Data
 void Device::update()
 {
+    // Update Color
+    updateColor();
+
     // Update Depth
     updateDepth();
+}
+
+// Update Color
+inline void Device::updateColor()
+{
+    // Update Frame
+    OPENNI_CHECK( color_stream.readFrame( &color_frame ) );
+
+    // Retrive Frame Size
+    width = color_frame.getWidth();
+    height = color_frame.getHeight();
 }
 
 // Update Depth
@@ -120,13 +144,26 @@ inline void Device::updateDepth()
     OPENNI_CHECK( depth_stream.readFrame( &depth_frame ) );
 
     // Retrieve Frame Size
-    depth_width = depth_frame.getWidth();
-    depth_height = depth_frame.getHeight();
+    width = depth_frame.getWidth();
+    height = depth_frame.getHeight();
+}
+
+// Draw Color
+inline void Device::drawColor()
+{
+    // Create cv::Mat form Color Frame
+    color_mat = cv::Mat( height, width, CV_8UC3, const_cast<void*>( color_frame.getData() ) );
+
+    // Convert RGB to BGR
+    cv::cvtColor( color_mat, color_mat, cv::COLOR_RGB2BGR );
 }
 
 // Draw Data
 void Device::draw()
 {
+    // Draw color
+    drawColor();
+
     // Draw Point Cloud
     drawPointCloud();
 }
@@ -142,13 +179,13 @@ inline void Device::drawPointCloud()
     const uint16_t* depth = static_cast<const uint16_t*>( depth_frame.getData() );
 
     // Create cv::Mat from Vertices and Texture
-    vertices_mat = cv::Mat( depth_height, depth_width, CV_32FC3, cv::Vec3f::all( std::numeric_limits<float>::quiet_NaN() ) );
+    vertices_mat = cv::Mat( height, width, CV_32FC3, cv::Vec3f::all( std::numeric_limits<float>::quiet_NaN() ) );
 
     #pragma omp parallel for
-    for( uint32_t y = 0; y < depth_height; y++ ){
-        for( uint32_t x = 0; x < depth_width; x++ ){
+    for( uint32_t y = 0; y < height; y++ ){
+        for( uint32_t x = 0; x < width; x++ ){
             // Retrieve Depth
-            const uint16_t z = depth[y * depth_width + x];
+            const uint16_t z = depth[y * width + x];
             if( !z ){
                 continue;
             }
@@ -178,7 +215,7 @@ inline void Device::showPointCloud()
     }
 
     // Create Point Cloud
-    cv::viz::WCloud cloud( vertices_mat, cv::viz::Color::white() );
+    cv::viz::WCloud cloud( vertices_mat, color_mat);
 
     // Show Point Cloud
     viewer.showWidget( "Cloud", cloud );

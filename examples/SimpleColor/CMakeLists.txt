@@ -8,6 +8,8 @@ set( CMAKE_CXX_STANDARD 14 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
 set( CMAKE_CXX_EXTENSIONS OFF )
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
 FILE(GLOB_RECURSE HDR_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp
 )
@@ -20,10 +22,6 @@ if(UNIX)
 endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-
-# OpenCV
-set( OpenCV_DIR "C:/Program Files/opencv/build" CACHE PATH "Path to OpenCV config directory." )
-find_package( OpenCV )
 
 # OpenMP
 find_package( OpenMP )
