@@ -150,30 +150,14 @@ openni::Status SampleViewer::run()	//Does not return
 }
 void SampleViewer::display()
 {
-    int changedIndex;
-    openni::Status rc = openni::OpenNI::waitForAnyStream(m_streams, 2, &changedIndex);
-    if (rc != openni::STATUS_OK)
+    if(m_eViewState == DISPLAY_MODE_IMAGE || m_eViewState == DISPLAY_MODE_OVERLAY)
     {
-        printf("Wait failed\n");
-        return;
+        m_colorStream.readFrame(&m_colorFrame);
     }
 
-    switch (changedIndex)
+    if(m_eViewState == DISPLAY_MODE_DEPTH || m_eViewState == DISPLAY_MODE_OVERLAY)
     {
-    case 0:
         m_depthStream.readFrame(&m_depthFrame);
-#if 0
-        std::cout << "Received Depth #" << m_depthFrame.getFrameIndex() << std::endl;
-#endif
-        break;
-    case 1:
-        m_colorStream.readFrame(&m_colorFrame);
-#if 0
-        std::cout << "Received Color #" << m_colorFrame.getFrameIndex() << std::endl;
-#endif
-        break;
-    default:
-        printf("Error in wait\n");
     }
 
     glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

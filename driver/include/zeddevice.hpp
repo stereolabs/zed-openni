@@ -23,6 +23,10 @@ public:
 
     virtual StreamBase* createStream(OniSensorType sensorType) override;
     virtual void destroyStream(StreamBase* pStream) override;
+
+    virtual OniStatus setProperty(int propertyId, const void* data, int dataSize) override;
+    virtual OniStatus getProperty(int propertyId, void* data, int* dataSize) override;
+    virtual OniBool isPropertySupported(int propertyId) override;
 protected:
     OniStatus initialize();
     void initCameraParams();
@@ -51,6 +55,8 @@ protected:
 
     OniDeviceInfo mInfo;
     std::vector<OniSensorInfo> mSensorInfo;
+
+    OniImageRegistrationMode mRegistrationMode;
 
     std::unique_ptr<std::thread> mGrabThread;
 

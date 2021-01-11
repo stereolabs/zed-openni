@@ -69,9 +69,8 @@ set_target_properties(${LIB_NAME} PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO "${OPENNI2_LIB_DIRS}/OpenNI2/Drivers/"
     LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL "${OPENNI2_LIB_DIRS}/OpenNI2/Drivers/"
 )
-target_link_libraries(${LIB_NAME}
+target_link_libraries( ${LIB_NAME}
     ${ZED_LIBS}
-
 )
 
 ###########################################################################

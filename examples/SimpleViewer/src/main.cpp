@@ -111,19 +111,20 @@ int main(int argc, char** argv)
     bool aeg = settings->getAutoExposureEnabled();
     printf("Auto gain/exposure: %s\n", aeg?"TRUE":"FALSE");
     bool awb = settings->getAutoWhiteBalanceEnabled();
-    printf("Auto white/balance: %s\n", awb?"TRUE":"FALSE");
-    int gain = settings->getGain();
-    printf("Gain: %d\n", gain);
-    int exposure = settings->getExposure();
-    printf("Exposure: %d\n", exposure);
+    printf("Auto white balance: %s\n", awb?"TRUE":"FALSE");
 
-    settings->setGain(80);
-    settings->setExposure(30);
+    if(awb==FALSE)
+    {
+        printf("Enabling auto white balance");
+        settings->setAutoWhiteBalanceEnabled( true);
+    }
+    if(aeg==FALSE)
+    {
+        printf("Enabling auto gain/exposure");
+        settings->setAutoExposureEnabled( true);
+    }
 
-    gain = settings->getGain();
-    printf("Gain: %d\n", gain);
-    exposure = settings->getExposure();
-    printf("Exposure: %d\n", exposure);
+
 
 
 	SampleViewer sampleViewer("Simple Viewer", device, depth, color);

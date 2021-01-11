@@ -1,4 +1,5 @@
 #include "zeddevice.hpp"
+#include "PS1080.h"
 #include <chrono>
 
 #define SENSOR_COUNT 3
@@ -834,6 +835,98 @@ OniStatus ZedDevice::addStream(OniSensorType sensorType, int profileId, std::vec
 
     mStreams.push_back(streamObj);
     return ONI_STATUS_OK;
+}
+
+OniStatus ZedDevice::setProperty(int propertyId, const void* data, int dataSize)
+{
+    if(mVerbose)
+        zedLogFunc("propertyId=%d dataSize=%d", propertyId, dataSize);
+
+    switch (propertyId)
+    {
+    case ONI_DEVICE_PROPERTY_IMAGE_REGISTRATION:
+    {
+        if (data && (dataSize == sizeof(OniImageRegistrationMode)))
+        {
+            mRegistrationMode = *((OniImageRegistrationMode*)data);
+            if(mVerbose)
+                zedLogDebug("registrationMode=%d", (int)mRegistrationMode);
+            return ONI_STATUS_OK;
+        }
+        break;
+    }
+
+    default:
+    {
+        zedLogError("Not supported: propertyId=%d", propertyId);
+        return ONI_STATUS_NOT_SUPPORTED;
+    }
+    }
+
+    zedLogError("propertyId=%d dataSize=%d", propertyId, dataSize);
+    return ONI_STATUS_ERROR;
+}
+
+OniStatus ZedDevice::getProperty(int propertyId, void* data, int* dataSize)
+{
+    switch (propertyId)
+    {
+    case ONI_DEVICE_PROPERTY_SERIAL_NUMBER:
+    {
+        if (data && dataSize && *dataSize > 0)
+        {
+            int n = snprintf((char*)data, *dataSize - 1, "%u", mZedProp.serial_number);
+            *dataSize = n + 1;
+            return ONI_STATUS_OK;
+        }
+        break;
+    }
+
+    case ONI_DEVICE_PROPERTY_IMAGE_REGISTRATION:
+    {
+        if (data && dataSize && *dataSize == sizeof(OniImageRegistrationMode))
+        {
+            *((OniImageRegistrationMode*)data) = mRegistrationMode;
+            return ONI_STATUS_OK;
+        }
+        break;
+    }
+
+#ifdef EMULATE_PRIMESENSE_HARDWARE
+    case XN_MODULE_PROPERTY_AHB:
+    {
+        if (data && dataSize && *dataSize == 12)
+        {
+            unsigned char hack[] = {0x40, 0x0, 0x0, 0x28, 0x6A, 0x26, 0x54, 0x4F, 0xFF, 0xFF, 0xFF, 0xFF};
+            memcpy(data, hack, sizeof(hack));
+            return ONI_STATUS_OK;
+        }
+        break;
+    }
+#endif
+
+    default:
+    {
+        zedLogError("Not supported: propertyId=%d", propertyId);
+        return ONI_STATUS_NOT_SUPPORTED;
+    }
+    }
+
+    zedLogError("propertyId=%d dataSize=%d", propertyId, *dataSize);
+    return ONI_STATUS_ERROR;
+}
+
+OniBool ZedDevice::isPropertySupported(int propertyId)
+{
+    switch (propertyId)
+    {
+    case ONI_DEVICE_PROPERTY_SERIAL_NUMBER:
+    case ONI_DEVICE_PROPERTY_IMAGE_REGISTRATION:
+        return true;
+
+    default:
+        return false;
+    }
 }
 
 } } // namespace driver // namespace oni

@@ -3,6 +3,8 @@ project (zed-openni)
 
 set(CMAKE_CXX_STANDARD 14)
 
+option(COMPILE_EXAMPLES "Compile examples" ON)
+
 ###########################################################################
 ### DEPENDENCIES
 ###########################################################################
@@ -15,7 +17,6 @@ set(OPENNI2_DIR "" CACHE PATH "Root of the OpenNI2 SDK directory")
 
 message("-----------------------------------------------------------------------------")
 if(EXISTS ${OPENNI2_DIR}/Include)
-
     message(STATUS "OpenNI2 folder: ${OPENNI2_DIR}")
     set(OPENNI2_INCLUDE_DIRS ${OPENNI2_DIR}/Include)
     message(STATUS "OpenNI2 include folder: ${OPENNI2_INCLUDE_DIRS}")
@@ -67,7 +68,9 @@ endif()
 ### Modules
 ###########################################################################
 add_subdirectory(driver)
-add_subdirectory(examples)
+if(COMPILE_EXAMPLES)
+    add_subdirectory(examples)
+endif()
 
 ####################################################################
 # USEFUL FILES
