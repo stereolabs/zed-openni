@@ -49,7 +49,7 @@ private:
     inline void initializeColor();
 
     // Initialize Point Cloud
-    inline void initializePointCloud();
+    inline void initializeViewer();
 
     // Keyboard Callback Function
     static void keyboardCallback( const cv::viz::KeyboardEvent& event, void* cookie );

@@ -55,7 +55,7 @@ void PointcloudViz::initialize()
     initializeDepth();
 
     // Initialize Point Cloud
-    initializePointCloud();
+    initializeViewer();
 }
 
 // Initialize Device
@@ -86,10 +86,11 @@ inline void PointcloudViz::initializeColor()
 }
 
 // Initialize Point Cloud
-inline void PointcloudViz::initializePointCloud()
+inline void PointcloudViz::initializeViewer()
 {
     // Create Window
     viewer = cv::viz::Viz3d( "ZED Point Cloud" );
+    viewer.setWindowSize( cv::Size(800,600));
 
     // Register Keyboard Callback Function
     viewer.registerKeyboardCallback( &keyboardCallback, this );
@@ -181,7 +182,7 @@ inline void PointcloudViz::drawPointCloud()
     // Create cv::Mat from Vertices and Texture
     vertices_mat = cv::Mat( height, width, CV_32FC3, cv::Vec3f::all( std::numeric_limits<float>::quiet_NaN() ) );
 
-    #pragma omp parallel for
+#pragma omp parallel for
     for( uint32_t y = 0; y < height; y++ ){
         for( uint32_t x = 0; x < width; x++ ){
             // Retrieve Depth
@@ -219,5 +220,8 @@ inline void PointcloudViz::showPointCloud()
 
     // Show Point Cloud
     viewer.showWidget( "Cloud", cloud );
+    viewer.showWidget("Coordinate Widget", cv::viz::WCoordinateSystem(500.0));
+    //viewer.resetCameraViewpoint("Cloud");
+
     viewer.spinOnce();
 }
