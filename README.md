@@ -68,13 +68,36 @@ Please be sure to have writing permission for the folder `<openni2-path>/Redist/
 
 The driver comes with five examples demonstrating how to use it to retrieve and show color images, depth maps and point clouds.
 
-* [SimpleMultiViewer](https://github.com/stereolabs/zed-openni/tree/main/examples/SimpleMultiViewer): creates an OpenGL window displaying the color/depth combined stream (key 1), the depth stream (key 2) and the color stream (key 3)
+* [SimpleMultiViewer](https://github.com/stereolabs/zed-openni/tree/main/examples/SimpleMultiViewer): creates an OpenGL window displaying the color/depth combined stream (_key 1_), the depth stream (_key 2_) and the color stream (_key 3_)
 * [SimpleColor](https://github.com/stereolabs/zed-openni/tree/main/examples/SimpleColor): _[requires OpenCV]_ creates an OpenCV window displaying the color stream
 * [SimpleDepth](https://github.com/stereolabs/zed-openni/tree/main/examples/SimpleDepth): _[requires OpenCV]_ creates an OpenCV window displaying the depth stream
 * [SimpleRegistered](https://github.com/stereolabs/zed-openni/tree/main/examples/SimpleRegistered): _[requires OpenCV]_ creates two OpenCV windows displaying the synchronized color and depth streams
 * [SimplePointCloud](https://github.com/stereolabs/zed-openni/tree/main/examples/SimplePointCloud): _[requires OpenCV]_ creates an OpenCV 3D window displaying the color stream mappend on a 3D point cloud
 
 ## Camera configuration
+
+The ZED camera can be initialized using two configuration files:
+
+* `ZedInitConfig.yaml`: contains the [Initialization parameters](https://www.stereolabs.com/docs/api/structsl_1_1InitParameters.html) in YAML format
+* `ZedRuntimeConfig.yaml`: contains [the Runtime parameters](https://www.stereolabs.com/docs/api/structsl_1_1RuntimeParameters.html) in YAML format
+
+### Initialization parameters
+
+### Runtime parameters
+
+* `confidence_threshold`: Threshold to reject depth values based on their confidence.
+Each depth pixel has a corresponding confidence. (MEASURE::CONFIDENCE), the confidence range is [1,100].
+By default, the confidence threshold is set at 100, meaning that no depth pixel will be rejected.
+Decreasing this value will remove depth data from both objects edges and low textured areas, to keep only confident depth estimation data.
+* `texture_confidence_threshold`: Threshold to reject depth values based on their texture confidence.
+The texture confidence range is [1,100].
+By default, the texture confidence threshold is set at 100, meaning that no depth pixel will be rejected.
+Decreasing this value will remove depth data from image areas which are uniform.
+* `sensing_mode`: Defines the algorithm used for depth map computation, more info : SENSING_MODE definition. 
+* `measure3D_reference_frame`: always forced to `sl::REFERENCE_FRAME::CAMERA`
+* `enable_depth`: always forced to true
+
+Both the files will be automatically created by the driver in the same folder of the executable if they do not exists.
 
 
 ## License
