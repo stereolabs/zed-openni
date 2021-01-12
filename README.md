@@ -1,11 +1,21 @@
-![](./images/Picto+STEREOLABS_Black.jpg)
+<h1 align="center">
+  ZED OpenNI2 driver
+</h1>
 
-# Stereolabs ZED Camera - OpenNI2 driver
+<h4 align="center">OpenNI2 driver for the ZED stereo camera family</h4>
+
+<p align="center">
+  <a href="#build">Build</a> •
+  <a href="#examples">Examples</a> •
+  <a href="#camera-configuration">Camera Configuration</a> •
+  <a href="#license">License</a>
+</p>
+<br>
 
 [OpenNI](https://github.com/occipital/openni2) provides a uniform interface that third party middleware developers can use to interact with depth sensors.
 The ZED OpenNI driver transforms each ZED camera into a PrimeSense compatible depth sensors to use it with the [OpenNI 2 API](https://github.com/occipital/openni2).
 
-## Installation
+## Build
 
 ### Install OpenNI2
 
@@ -26,34 +36,53 @@ Extract the library:
 $ tar -xf OpenNI-Linux-<arch>-2.2.0.33.tar.bz2 
 ```
 
-A new folder `OpenNI-Linux-<arch>-2.2` will be created containing the precompiled library, take note of its full path.
+A new folder `OpenNI-Linux-<arch>-2.2` will be created containing the precompiled library, take note of its full path
+because you will need in the next steps.
 
 ### Build and install the driver
 
 #### Linux
 
-OpenCV is required to build all the examples
+OpenCV is optionally required to build all the examples.
 
-* [Optional] Install OpenCV:
-    `$ sudo apt install libopencv-dev`
+_[Optional]_ Install OpenCV:
 
-* Clone this repository: 
-    `$ git clone git@github.com:stereolabs/zed-openni.git`
+    $ sudo apt install libopencv-dev
+    
+Clone this repository: 
 
-* Build the driver:
+    $ git clone git@github.com:stereolabs/zed-openni.git
 
-```
+Build the driver (use the path to the OpenNI2 library noted above):
+
     $ cd zed-openni
     $ mkdir build
     $ cd build
     $ cmake .. -DOPENNI2_DIR='path-to-your-openni2-installation-folder' -DCMAKE_BUILD_TYPE=Release
     $ make -j$(nproc)
-```
 
-The driver library file will be automatically copied in the folder `<openni2-path>/Redist/OpenNI2/Drivers` and it will be automatically loaded by OpenNI2 during initialization.
+The library file of the driver will be automatically copied in the folder `<openni2-path>/Redist/OpenNI2/Drivers` and it will be automatically loaded by OpenNI2 during initialization.
+Please be sure to have writing permission for the folder `<openni2-path>/Redist/OpenNI2/Drivers`.
 
 ## Examples
 
+The driver comes with five examples demonstrating how to use it to retrieve and show color images, depth maps and point clouds.
+
+* `SimpleMultiViewer`: creates an OpenGL window displaying the color/depth combined stream (key 1), the depth stream (key 2) and the color stream (key 3)
+* `SimpleColor`: [requires OpenCV] creates an OpenCV window displaying the color stream
+* `SimpleDepth`: [requires OpenCV] creates an OpenCV window displaying the depth stream
+* `SimpleRegistered`: [requires OpenCV] creates two OpenCV windows displaying the synchronized color and depth streams
+* `SimplePointCloud`: [requires OpenCV] creates an OpenCV 3D window displaying the color stream mappend on a 3D point cloud
+
+## Camera configuration
+
+
+## License
+
+This library is licensed under the LGPL License.
+
+## Support
+If you need assistance go to our Community site at https://community.stereolabs.com/
 
     
 
