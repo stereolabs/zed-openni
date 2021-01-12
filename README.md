@@ -123,8 +123,7 @@ Decreasing this value will remove depth data from image areas which are uniform.
 * `measure3D_reference_frame`: always forced to `sl::REFERENCE_FRAME::CAMERA`
 * `enable_depth`: always forced to `true`
 
-Both the files will be automatically created by the driver in the same folder of the executable if they do not exists.
-
+Both the files, if not existing, will be automatically created with the default parameters by the driver in the same folder of the executable.
 
 ## License
 
