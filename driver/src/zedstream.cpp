@@ -144,24 +144,6 @@ OniStatus ZedStream::setProperty(int propertyId, const void* data, int dataSize)
 
     switch (propertyId)
     {
-    //    case ONI_STREAM_PROPERTY_VIDEO_MODE:
-    //    {
-    //        if (data && (dataSize == sizeof(OniVideoMode)))
-    //        {
-    //            OniVideoMode* mode = (OniVideoMode*)data;
-    //            zedLogFunc("set video mode: %dx%d @%d format=%d",
-    //                       (int)mode->resolutionX, (int)mode->resolutionY, (int)mode->fps, (int)mode->pixelFormat);
-
-    //            int spiIdx =isVideoModeSupported(mode);
-    //            if(spiIdx!=-1)
-    //            {
-    //                getDevice()->changeVideoMode(&mProfiles[spiIdx]);
-    //                return ONI_STATUS_OK;
-    //            }
-    //        }
-    //        break;
-    //    }
-
     case ONI_STREAM_PROPERTY_AUTO_WHITE_BALANCE:
     {
         if (data && dataSize == sizeof(OniBool) )

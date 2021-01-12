@@ -4,47 +4,7 @@ project (zed-openni)
 set(CMAKE_CXX_STANDARD 14)
 
 option(COMPILE_EXAMPLES "Compile examples" ON)
-
-###########################################################################
-### DEPENDENCIES
-###########################################################################
-# add local cmake modules
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
-
-include(MacroLogFeature)
-
-set(OPENNI2_DIR "" CACHE PATH "Root of the OpenNI2 SDK directory")
-
-message("-----------------------------------------------------------------------------")
-if(EXISTS ${OPENNI2_DIR}/Include)
-    message(STATUS "OpenNI2 folder: ${OPENNI2_DIR}")
-    set(OPENNI2_INCLUDE_DIRS ${OPENNI2_DIR}/Include)
-    message(STATUS "OpenNI2 include folder: ${OPENNI2_INCLUDE_DIRS}")
-    #set(OPENNI2_LIB_DIRS ${OPENNI2_DIR}/Redist) TO BE USED WITH OCCIPITAL PRECOMPILED OpenNI2
-    set(OPENNI2_LIB_DIRS ${OPENNI2_DIR}/Bin/x64-Debug) #TO BE USED WITH OCCIPITAL PRECOMPILED OpenNI2 in Debug mode
-    message(STATUS "OpenNI2 libraries folder: ${OPENNI2_LIB_DIRS}")
-    set(OPENNI2_LIBRARIES ${OPENNI2_LIB_DIRS}/libOpenNI2.so)
-    message(STATUS "OpenNI2 library file: ${OPENNI2_LIBRARIES}")
-else()
-    message( FATAL_ERROR "Please set the path to OpenNI2 root folder -> '-DOPENNI2_DIR='path-to-your-openni2-installation-folder'" )
-endif()
-message("-----------------------------------------------------------------------------")
-
-find_package(ZED 3)
-macro_log_feature(ZED_FOUND "ZED SDK" "Required to build ${PROJECT_NAME}" "https://www.stereolabs.com" TRUE "3")
-find_package(CUDA ${ZED_CUDA_VERSION} EXACT)
-macro_log_feature(CUDA_FOUND "Nvidia CUDA library" "Required to build ${PROJECT_NAME}" "http://www.nvidia.com" FALSE "${ZED_CUDA_VERSION}")
-
-macro_display_feature_log()
-
-if(UNIX)
-    message(STATUS "[${PROJECT_NAME}] OS: Unix")
-    add_definitions(-std=c++14 -Wno-deprecated-declarations -Wno-write-strings -no-pie)
-endif(UNIX)
-
-if(MSVC)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++14")
-endif(MSVC)
+option(PRECOMPILED_OPENNI "Use a pre-compiled version of OpenNI2" ON)
 
 ###########################################################################
 ### Build type
@@ -63,6 +23,57 @@ elseif(CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
     message(STATUS "[${PROJECT_NAME}] Build type: Release with Debug Info")
     add_definitions(-g)
 endif()
+
+###########################################################################
+### DEPENDENCIES
+###########################################################################
+# add local cmake modules
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
+
+include(MacroLogFeature)
+.
+set(OPENNI2_DIR "" CACHE PATH "Root of the OpenNI2 SDK directory")
+
+message("-----------------------------------------------------------------------------")
+if(EXISTS ${OPENNI2_DIR}/Include)
+    message(STATUS "OpenNI2 folder: ${OPENNI2_DIR}")
+
+    set(OPENNI2_INCLUDE_DIRS ${OPENNI2_DIR}/Include)
+    message(STATUS "OpenNI2 include folder: ${OPENNI2_INCLUDE_DIRS}")
+
+    if(PRECOMPILED_OPENNI)
+        set(OPENNI2_LIB_DIRS ${OPENNI2_DIR}/Redist)
+    else(PRECOMPILED_OPENNI)
+        if(CMAKE_BUILD_TYPE MATCHES Release)
+            set(OPENNI2_LIB_DIRS ${OPENNI2_DIR}/Bin/x64-Release)
+        else()
+            set(OPENNI2_LIB_DIRS ${OPENNI2_DIR}/Bin/x64-Debug)
+        endif()
+    endif(PRECOMPILED_OPENNI)
+    message(STATUS "OpenNI2 libraries folder: ${OPENNI2_LIB_DIRS}")
+
+    set(OPENNI2_LIBRARIES ${OPENNI2_LIB_DIRS}/libOpenNI2.so)
+    message(STATUS "OpenNI2 library file: ${OPENNI2_LIBRARIES}")
+else()
+    message( FATAL_ERROR "Please set the path to OpenNI2 root folder -> '-DOPENNI2_DIR='path-to-your-openni2-installation-folder'" )
+endif()
+message("-----------------------------------------------------------------------------")
+
+find_package(ZED 3 REQUIRED)
+macro_log_feature(ZED_FOUND "ZED SDK" "Required to build ${PROJECT_NAME}" "https://www.stereolabs.com" TRUE "3")
+find_package(CUDA ${ZED_CUDA_VERSION} EXACT)
+macro_log_feature(CUDA_FOUND "Nvidia CUDA library" "Required to build ${PROJECT_NAME}" "http://www.nvidia.com" FALSE "${ZED_CUDA_VERSION}")
+
+macro_display_feature_log()
+
+if(UNIX)
+    message(STATUS "[${PROJECT_NAME}] OS: Unix")
+    add_definitions(-std=c++14 -Wno-deprecated-declarations -Wno-write-strings -no-pie)
+endif(UNIX)
+
+if(MSVC)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++14")
+endif(MSVC)
 
 ###########################################################################
 ### Modules

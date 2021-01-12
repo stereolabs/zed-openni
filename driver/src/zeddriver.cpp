@@ -230,27 +230,4 @@ void ZedDriver::deviceClose(DeviceBase* deviceBase)
     }
 }
 
-OniStatus ZedDriver::tryDevice(const char* uri)
-{
-#ifndef NDEBUG
-    zedLogFunc("");
-#endif
-}
-
-void* ZedDriver::enableFrameSync(StreamBase** streams, int streamCount)
-{
-#ifndef NDEBUG
-    zedLogFunc("");
-#endif
-}
-
-void ZedDriver::disableFrameSync(void* frameSyncGroup)
-{
-#ifndef NDEBUG
-    zedLogFunc("");
-#endif
-}
-
-
-
 } } // namespace driver // namespace oni

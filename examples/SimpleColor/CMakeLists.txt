@@ -31,19 +31,21 @@ if( OpenMP_FOUND )
   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}" )
 endif()
 
-if( OpenCV_FOUND )
-  # Additional Include Directories
-  include_directories(${OPENNI2_INCLUDE_DIRS})
-  include_directories( ${OpenCV_INCLUDE_DIRS} )
 
-  add_executable( ${PROJECT_NAME}
-      ${COMMON_HDR_FILES}
-      ${HDR_FILES}
-      ${SRC_FILES})
-  # Dependencies
-  target_link_libraries( ${PROJECT_NAME}
-      ${OpenCV_LIBS}
-      ${OPENNI2_LIBRARIES})
-endif()
+# Additional Include Directories
+include_directories(${OPENNI2_INCLUDE_DIRS})
+include_directories( ${OpenCV_INCLUDE_DIRS} )
+
+add_executable( ${PROJECT_NAME}
+    ${COMMON_HDR_FILES}
+    ${HDR_FILES}
+    ${SRC_FILES}
+)
+# Dependencies
+target_link_libraries( ${PROJECT_NAME}
+  ${OpenCV_LIBS}
+  ${OPENNI2_LIBRARIES}
+)
+
 
 

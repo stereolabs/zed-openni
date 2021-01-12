@@ -73,18 +73,5 @@ target_link_libraries( ${LIB_NAME}
     ${ZED_LIBS}
 )
 
-###########################################################################
-### INSTALL
-###########################################################################
-#if(NOT DRIVER_INSTALL_PATH )
-#    get_filename_component(_PREFIX "${OPENNI2_INCLUDE_DIRS}/../../lib/OpenNI2" REALPATH)
-#    set(DRIVER_INSTALL_PATH "${_PREFIX}/Drivers"
-#        CACHE PATH "Common prefix for all installed files " FORCE)
-#endif()
-#message(STATUS "[${LIB_NAME}] Driver install path: ${DRIVER_INSTALL_PATH}")
-
-#install(TARGETS ${LIB_NAME} LIBRARY DESTINATION ${DRIVER_INSTALL_PATH})
-
-
-
+# NOTE: the driver is automatically deployed in the Driver folder in OpenNI2
 

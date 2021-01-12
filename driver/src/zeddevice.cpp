@@ -117,15 +117,6 @@ void ZedDevice::destroyStream(StreamBase* streamBase)
     }
 }
 
-//void ZedDevice::changeVideoMode(const ZedStreamProfileInfo *spi)
-//{
-//    zedLogFunc("");
-
-//    std::lock_guard<std::mutex> lock(mCamMutex);
-
-//    restartCamera(spi);
-//}
-
 void ZedDevice::grabThreadFunc()
 {
     if(mVerbose)
@@ -157,7 +148,6 @@ void ZedDevice::grabThreadFunc()
         if(ret!=sl::ERROR_CODE::SUCCESS)
         {
             zedLogError("ZED Grab error: %s", sl::toString(ret).c_str());
-            break; // TODO Improve grab error handling
         }
 
         if(!hasEnabledStreams())

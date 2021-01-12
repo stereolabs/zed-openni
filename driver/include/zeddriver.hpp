@@ -50,10 +50,6 @@ public:
 
     virtual DeviceBase* deviceOpen(const char* uri, const char* mode);
     virtual void deviceClose(DeviceBase* deviceBase);
-    virtual OniStatus tryDevice(const char* uri);
-
-    virtual void* enableFrameSync(StreamBase** streams, int streamCount);
-    virtual void disableFrameSync(void* frameSyncGroup);
 
 protected:
     size_t enumerateDevices();

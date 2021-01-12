@@ -34,4 +34,4 @@
         throw std::runtime_error( ss.str().c_str() );             \
     }
 
-#endif
+#endif // TOOLS_HPP
