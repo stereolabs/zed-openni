@@ -68,11 +68,11 @@ Please be sure to have writing permission for the folder `<openni2-path>/Redist/
 
 The driver comes with five examples demonstrating how to use it to retrieve and show color images, depth maps and point clouds.
 
-* `SimpleMultiViewer`: creates an OpenGL window displaying the color/depth combined stream (key 1), the depth stream (key 2) and the color stream (key 3)
-* `SimpleColor`: [requires OpenCV] creates an OpenCV window displaying the color stream
-* `SimpleDepth`: [requires OpenCV] creates an OpenCV window displaying the depth stream
-* `SimpleRegistered`: [requires OpenCV] creates two OpenCV windows displaying the synchronized color and depth streams
-* `SimplePointCloud`: [requires OpenCV] creates an OpenCV 3D window displaying the color stream mappend on a 3D point cloud
+* [SimpleMultiViewer](https://github.com/stereolabs/zed-openni/tree/main/examples/SimpleMultiViewer): creates an OpenGL window displaying the color/depth combined stream (key 1), the depth stream (key 2) and the color stream (key 3)
+* [SimpleColor](https://github.com/stereolabs/zed-openni/tree/main/examples/SimpleColor): _[requires OpenCV]_ creates an OpenCV window displaying the color stream
+* [SimpleDepth](https://github.com/stereolabs/zed-openni/tree/main/examples/SimpleDepth): _[requires OpenCV]_ creates an OpenCV window displaying the depth stream
+* [SimpleRegistered](https://github.com/stereolabs/zed-openni/tree/main/examples/SimpleRegistered): _[requires OpenCV]_ creates two OpenCV windows displaying the synchronized color and depth streams
+* [SimplePointCloud](https://github.com/stereolabs/zed-openni/tree/main/examples/SimplePointCloud): _[requires OpenCV]_ creates an OpenCV 3D window displaying the color stream mappend on a 3D point cloud
 
 ## Camera configuration
 
