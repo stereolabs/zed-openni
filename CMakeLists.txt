@@ -6,6 +6,10 @@ set(CMAKE_CXX_STANDARD 14)
 option(COMPILE_EXAMPLES "Compile examples" ON)
 option(PRECOMPILED_OPENNI "Use a pre-compiled version of OpenNI2" ON)
 
+if(WIN32)
+ SET(COMPILE_EXAMPLES OFF)
+endif()
+
 ###########################################################################
 ### Build type
 ###########################################################################
@@ -33,7 +37,6 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 include(MacroLogFeature)
 
 set(OPENNI2_DIR "" CACHE PATH "Root of the OpenNI2 SDK directory")
-
 message("-----------------------------------------------------------------------------")
 if(EXISTS ${OPENNI2_DIR}/Include)
     message(STATUS "OpenNI2 folder: ${OPENNI2_DIR}")
@@ -42,7 +45,11 @@ if(EXISTS ${OPENNI2_DIR}/Include)
     message(STATUS "OpenNI2 include folder: ${OPENNI2_INCLUDE_DIRS}")
 
     if(PRECOMPILED_OPENNI)
-        set(OPENNI2_LIB_DIRS ${OPENNI2_DIR}/Redist)
+        if(UNIX)
+            set(OPENNI2_LIB_DIRS ${OPENNI2_DIR}/Redist)
+        elseif(WIN32)
+            set(OPENNI2_LIB_DIRS ${OPENNI2_DIR}/Lib)
+        endif()
     else(PRECOMPILED_OPENNI)
         if(CMAKE_BUILD_TYPE MATCHES Release)
             set(OPENNI2_LIB_DIRS ${OPENNI2_DIR}/Bin/x64-Release)
@@ -52,7 +59,11 @@ if(EXISTS ${OPENNI2_DIR}/Include)
     endif(PRECOMPILED_OPENNI)
     message(STATUS "OpenNI2 libraries folder: ${OPENNI2_LIB_DIRS}")
 
-    set(OPENNI2_LIBRARIES ${OPENNI2_LIB_DIRS}/libOpenNI2.so)
+    if(UNIX)
+        set(OPENNI2_LIBRARIES ${OPENNI2_LIB_DIRS}/libOpenNI2.so)
+    elseif(WIN32)
+        set(OPENNI2_LIBRARIES ${OPENNI2_LIB_DIRS}/OpenNI2.lib)
+    endif()
     message(STATUS "OpenNI2 library file: ${OPENNI2_LIBRARIES}")
 else()
     message( FATAL_ERROR "Please set the path to OpenNI2 root folder -> '-DOPENNI2_DIR='path-to-your-openni2-installation-folder'" )
@@ -71,8 +82,12 @@ if(UNIX)
     add_definitions(-std=c++14 -Wno-deprecated-declarations -Wno-write-strings -no-pie)
 endif(UNIX)
 
+if(WIN32)
+    message(STATUS "[${PROJECT_NAME}] OS: Windows")
+endif()
+
 if(MSVC)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++14")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++14")
 endif(MSVC)
 
 ###########################################################################

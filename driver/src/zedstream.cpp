@@ -68,19 +68,19 @@ OniStatus ZedStream::initialize(std::shared_ptr<ZedDevice> device, int sensorId,
 
     if(mDevice->mRightMeasure)
     {
-        mFovX = device->mZed.getCameraInformation().calibration_parameters.left_cam.h_fov;
-        mFovY = device->mZed.getCameraInformation().calibration_parameters.left_cam.v_fov;
+        mFovX = device->mZed.getCameraInformation().camera_configuration.calibration_parameters.left_cam.h_fov;
+        mFovY = device->mZed.getCameraInformation().camera_configuration.calibration_parameters.left_cam.v_fov;
     }
     else
     {
-        mFovX = device->mZed.getCameraInformation().calibration_parameters.right_cam.h_fov;
-        mFovY = device->mZed.getCameraInformation().calibration_parameters.right_cam.v_fov;
+        mFovX = device->mZed.getCameraInformation().camera_configuration.calibration_parameters.right_cam.h_fov;
+        mFovY = device->mZed.getCameraInformation().camera_configuration.calibration_parameters.right_cam.v_fov;
     }
 
     mVideoMode.fps = mProfile.framerate;
     mVideoMode.pixelFormat = mProfile.format;
-    mVideoMode.resolutionX = mProfile.width;
-    mVideoMode.resolutionY = mProfile.height;
+    mVideoMode.resolutionX = (int)mProfile.width;
+    mVideoMode.resolutionY = (int)mProfile.height;
 
     if (mOniType == ONI_SENSOR_DEPTH)
     {
@@ -131,7 +131,7 @@ int ZedStream::isVideoModeSupported(OniVideoMode* mode)
                 spi.framerate==mode->fps &&
                 spi.format==mode->pixelFormat)
         {
-            return spiIdx;
+            return (int)spiIdx;
         }
     }
     return -1;

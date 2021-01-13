@@ -48,13 +48,13 @@ void ZedDevice::shutdown()
     if(mVerbose)
         zedLogFunc("");
 
-    std::lock_guard<std::mutex> lock(mStateMutex);
+    std::lock_guard<std::mutex> lock1(mStateMutex);
 
     if(mThreadRunning)
     {
         mStopThread = true;
 
-        std::lock_guard<std::mutex> lock(mCloseMutex);
+        std::lock_guard<std::mutex> lock2(mCloseMutex);
 
         if( mGrabThread->joinable() )
         {
@@ -181,7 +181,7 @@ void ZedDevice::publishFrame(std::shared_ptr<ZedStream> stream, int frameIdx)
     OniSensorType sensType = stream->getOniType();
 
     sl::Mat zedFrame;
-    sl::ERROR_CODE ret;
+    sl::ERROR_CODE ret = sl::ERROR_CODE::SUCCESS;
 
     const void* frameData = nullptr;
 
@@ -646,11 +646,11 @@ OniStatus ZedDevice::initializeStreams()
         std::vector<ZedStreamProfileInfo> profiles;
         findStreamProfiles(&profiles, sensType);
 
-        int profileId = getCurrentProfileId(&profiles);
+        int profId = getCurrentProfileId(&profiles);
 
-        if (addStream( sensType, profileId, &profiles) != ONI_STATUS_OK)
+        if (addStream( sensType, profId, &profiles) != ONI_STATUS_OK)
         {
-            zedLogError("Error adding stream sensorId=%d sensorType=%d profileId=%d", sensorId, sensType, profileId);
+            zedLogError("Error adding stream sensorId=%d sensorType=%d profileId=%d", sensorId, sensType, profId);
         }
     }
 
@@ -716,12 +716,12 @@ int ZedDevice::getProfileId(const std::vector<ZedStreamProfileInfo>* profiles, i
 int ZedDevice::getCurrentProfileId(std::vector<ZedStreamProfileInfo>* profiles)
 {
     sl::CameraInformation zedInfo = mZed.getCameraInformation();
-    int w = zedInfo.camera_resolution.width;
-    int h = zedInfo.camera_resolution.height;
-    int fps = zedInfo.camera_fps;
+    size_t w = zedInfo.camera_configuration.resolution.width;
+    size_t h = zedInfo.camera_configuration.resolution.height;
+    int fps = (int)zedInfo.camera_configuration.fps;
 
     if(mVerbose)
-        zedLogFunc("w=%d h=%d fps=%d",w,h,fps);
+        zedLogFunc("w=%zd h=%zd fps=%d",w,h,fps);
 
     for (auto iter = (*profiles).begin(); iter != (*profiles).end(); ++iter)
     {
@@ -750,7 +750,7 @@ void ZedDevice::findStreamProfiles(std::vector<ZedStreamProfileInfo>* dst, OniSe
         }
     }
     if(mVerbose)
-        zedLogDebug("%lu stream profiles available", dst->size());
+        zedLogDebug("%zu stream profiles available", dst->size());
 }
 
 OniStatus ZedDevice::addStream(OniSensorType sensorType, int profileId, std::vector<ZedStreamProfileInfo>* profiles)

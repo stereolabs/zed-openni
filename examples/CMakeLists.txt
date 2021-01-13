@@ -21,14 +21,18 @@ add_subdirectory(SimpleMultiViewer)
 ###########################################################################
 # Examples using OpenCV for rendering
 ###########################################################################
-set( OpenCV_DIR "C:/Program Files/opencv/build" CACHE PATH "Path to OpenCV config directory." )
-find_package( OpenCV )
+set( OpenCV_DIR "C:/devel/opencv/build" CACHE PATH "Path to OpenCV config directory." )
+find_package(OpenCV)
 
-if(OpenCV_FOUND)
+if(UNIX AND OpenCV_FOUND)
+    message("OpenCV Libraries: ${OpenCV_LIBS}")
+
     add_subdirectory(SimpleColor)
     add_subdirectory(SimpleDepth)
     add_subdirectory(SimpleRegistered)
-    add_subdirectory(SimplePointCloud)
+    if(UNIX)
+        add_subdirectory(SimplePointCloud)
+    endif()
 endif()
 
 

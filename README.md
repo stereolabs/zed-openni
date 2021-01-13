@@ -23,6 +23,7 @@ The latest version of OpenNI2 is required. It can be downloaded as a precompiled
 The ZED OpenNI2 driver supports Windows and Linux distributions.
 
 #### Linux
+
 Download the library for the correct architecture of your host system: 
 [x86](https://s3.amazonaws.com/com.occipital.openni/OpenNI-Linux-x86-2.2.0.33.tar.bz2), 
 [x64](https://s3.amazonaws.com/com.occipital.openni/OpenNI-Linux-x64-2.2.0.33.tar.bz2), 
@@ -36,8 +37,21 @@ Extract the library:
 $ tar -xf OpenNI-Linux-<arch>-2.2.0.33.tar.bz2 
 ```
 
-A new folder `OpenNI-Linux-<arch>-2.2` will be created containing the precompiled library, take note of its full path
-because you will need in the next steps.
+A new folder `OpenNI-Linux-<arch>-2.2` will be created containing the precompiled library, take note of its full path because you will need for the next steps.
+
+#### Windows
+
+Download the library for the correct architecture of your host system: 
+[x86](https://s3.amazonaws.com/com.occipital.openni/OpenNI-Windows-x86-2.2.0.33.zip), 
+[x64](https://s3.amazonaws.com/com.occipital.openni/OpenNI-Windows-x64-2.2.0.33.zip)
+
+**Note:** For ARM devices the library must be compiled from sources.
+
+Extract the library using the tool you prefer. A new folder `OpenNI-Windows-<arch>-2.2.0.33` will be created containing the installer.
+Enter into the new folder and double click on the file `OpenNI-Windows-<arch>-2.2.msi` to install OpenNI2.
+Take note of the installation full path because you will need for the next steps.
+
+**Note:** install the Primesense driver to create the correct path for OpenNI drivers.
 
 ### Build and install the driver
 
@@ -64,8 +78,28 @@ Build the driver (use the path to the OpenNI2 library noted above):
 The library file of the driver will be automatically copied in the folder `<openni2-path>/Redist/OpenNI2/Drivers` and it will be automatically loaded by OpenNI2 during initialization.
 Please be sure to have writing permission for the folder `<openni2-path>/Redist/OpenNI2/Drivers`.
 
+#### Windows
+
+**Prerequisites**
+
+* CMake [>v3.10] is required to configure the ZED OpenNI driver before building. You can install the latest version downloading it from the [CMake website](https://cmake.org/download/).
+* OpenCV is optionally required to build all the examples. Follow the instruction on the [OpenCV documentation](https://opencv.org/releases/) to correctly install it.
+
+Clone this repository using Git for Windows.
+
+Run CMake (cmake-gui), select the folder where you cloned this repository as source and set a build folder.
+ 
+Configure the following parameters
+ * `OpenNI2-DIR` -> use the path to the OpenNI2 library noted above (e.g. `C:\Program Files\OpenNI2`)
+
+Click `Configure` and then `Generate`.
+If everything is correctly configure you can now click `Open Project` and build it using Visual Studio.
+
+The build process generates a file named `libzeddriver.dll` in the sub-folder `Release` of the folder chosen as build destination. This file must be manually copied in the OpenNI2 driver folder to be able to run the OpenNI2 examples.
+
 ## Examples
 
+### Linux
 The driver comes with five examples demonstrating how to use it to retrieve and show color images, depth maps and point clouds.
 
 * [SimpleMultiViewer](https://github.com/stereolabs/zed-openni/tree/main/examples/SimpleMultiViewer): creates an OpenGL window displaying the color/depth combined stream (_key 1_), the depth stream (_key 2_) and the color stream (_key 3_)
@@ -73,6 +107,20 @@ The driver comes with five examples demonstrating how to use it to retrieve and 
 * [SimpleDepth](https://github.com/stereolabs/zed-openni/tree/main/examples/SimpleDepth): _[requires OpenCV]_ creates an OpenCV window displaying the depth stream
 * [SimpleRegistered](https://github.com/stereolabs/zed-openni/tree/main/examples/SimpleRegistered): _[requires OpenCV]_ creates two OpenCV windows displaying the synchronized color and depth streams
 * [SimplePointCloud](https://github.com/stereolabs/zed-openni/tree/main/examples/SimplePointCloud): _[requires OpenCV]_ creates an OpenCV 3D window displaying the color stream mappend on a 3D point cloud
+
+### Windows
+
+The examples provided with this repository cannot be compiled because of the high number of dependencies to be satisfied that requires a highly sophisticated and laborious process under Windows.
+You can however run the examples provided with OpenNI2, simply manually copying the file `libzeddriver.dll` in the folder `<path-to-your-openni2-installation-folder\Samples\Bin\OpenNI2\Drivers>`\ (e.g. `C:\Program Files\OpenNI2\Samples\Bin\OpenNI2\Drivers`).
+
+The examples are available in the folder `<path-to-your-openni2-installation-folder\Samples\Bin`:
+* `ClosestPointViewer.exe`: creates an OpenGL window displaying the depth stream and showing the closest point to the camera
+* `EventBasedRead.exe`: opens a console and displays the results of the read events
+* `MultiDepthViewer.exe`: creates an OpenGL window displaying the depth stream coming from multiple cameras
+* `MultipleStreamRead.exe`: opens a console and displays the results of the read events from multiple cameras
+* `MWClosestPointApp.exe`: opens a console and displays the distance of the closest point to the camera
+* `SimpleRead.exe`: opens a console and displays the distance of the central point of the depth image
+* `SimpleViewer.exe`: creates an OpenGL window displaying the color/depth combined stream (_key 1_), the depth stream (_key 2_) and the color stream (_key 3_)
 
 ## Camera configuration
 

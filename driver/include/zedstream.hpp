@@ -36,9 +36,9 @@ struct ZedStreamProfileInfo
     int profileId;
     OniSensorType streamType;
     OniPixelFormat format;
-    int stride;
-    int width;
-    int height;
+    size_t stride;
+    size_t width;
+    size_t height;
     int framerate;
 };
 
