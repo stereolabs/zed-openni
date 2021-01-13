@@ -25,14 +25,10 @@ set( OpenCV_DIR "C:/devel/opencv/build" CACHE PATH "Path to OpenCV config direct
 find_package(OpenCV)
 
 if(UNIX AND OpenCV_FOUND)
-    message("OpenCV Libraries: ${OpenCV_LIBS}")
-
     add_subdirectory(SimpleColor)
     add_subdirectory(SimpleDepth)
     add_subdirectory(SimpleRegistered)
-    if(UNIX)
-        add_subdirectory(SimplePointCloud)
-    endif()
+    add_subdirectory(SimplePointCloud)
 endif()
 
 
