@@ -49,15 +49,20 @@ Download the library for the correct architecture of your host system:
 
 Extract the library using the tool you prefer. A new folder `OpenNI-Windows-<arch>-2.2.0.33` will be created containing the installer.
 Enter into the new folder and double click on the file `OpenNI-Windows-<arch>-2.2.msi` to install OpenNI2.
-Take note of the installation full path because you will need for the next steps.
+Take note of the installation path because you will need it for the next steps.
 
-**Note:** install the Primesense driver to create the correct path for OpenNI drivers.
+**Note:** install the Primesense driver when asked to create the correct path for the OpenNI drivers.
 
 ### Build and install the driver
 
 #### Linux
 
-OpenCV is optionally required to build all the examples.
+**Prerequisites**
+
+* CMake [>= v3.10]
+* _[Optional]_ OpenCV, optionally required to build all the examples.
+
+**Build**
 
 _[Optional]_ Install OpenCV:
 
@@ -76,26 +81,28 @@ Build the driver (use the path to the OpenNI2 library noted above):
     $ make -j$(nproc)
 
 The library file of the driver will be automatically copied in the folder `<openni2-path>/Redist/OpenNI2/Drivers` and it will be automatically loaded by OpenNI2 during initialization.
-Please be sure to have writing permission for the folder `<openni2-path>/Redist/OpenNI2/Drivers`.
+
+Please be sure to have write permission for the folder `<openni2-path>/Redist/OpenNI2/Drivers`.
 
 #### Windows
 
 **Prerequisites**
 
 * CMake [>v3.10] is required to configure the ZED OpenNI driver before building. You can install the latest version downloading it from the [CMake website](https://cmake.org/download/).
-* OpenCV is optionally required to build all the examples. Follow the instruction on the [OpenCV documentation](https://opencv.org/releases/) to correctly install it.
+
+**Build**
 
 Clone this repository using Git for Windows.
 
-Run CMake (cmake-gui), select the folder where you cloned this repository as source and set a build folder.
+Run CMake (`cmake-gui`), select the folder where you cloned this repository as source and setup a build folder.
  
 Configure the following parameters
  * `OpenNI2-DIR` -> use the path to the OpenNI2 library noted above (e.g. `C:\Program Files\OpenNI2`)
 
-Click `Configure` and then `Generate`.
-If everything is correctly configure you can now click `Open Project` and build it using Visual Studio.
+Click on `Configure`, select the build environment and then click on `Generate`.
+If everything is correctly configured you can now click `Open Project` and then build the driver using Visual Studio.
 
-The build process generates a file named `libzeddriver.dll` in the sub-folder `Release` of the folder chosen as build destination. This file must be manually copied in the OpenNI2 driver folder to be able to run the OpenNI2 examples.
+The build process generates a file named `libzeddriver.dll` in the sub-folder `Release` of the folder chosen as build destination. This file must be manually copied in the folder of OpenNI2 containing all the available drivers to be able to run the OpenNI2 examples using the ZED camera.
 
 ## Examples
 
@@ -110,10 +117,10 @@ The driver comes with five examples demonstrating how to use it to retrieve and 
 
 ### Windows
 
-The examples provided with this repository cannot be compiled because of the high number of dependencies to be satisfied that requires a highly sophisticated and laborious process under Windows.
-You can however run the examples provided with OpenNI2, simply manually copying the file `libzeddriver.dll` in the folder `<path-to-your-openni2-installation-folder\Samples\Bin\OpenNI2\Drivers>`\ (e.g. `C:\Program Files\OpenNI2\Samples\Bin\OpenNI2\Drivers`).
+The examples provided with this repository cannot be built for Windows because of the high number of dependencies to be satisfied that require a highly laborious and sophisticated process.
+You can however run the examples provided with OpenNI2. OpenNI2 must be able to recognize the ZED camera as a Primesense compatible device, this is possible manually copying the file `libzeddriver.dll` in the folder `<path-to-your-openni2-installation-folder\Samples\Bin\OpenNI2\Drivers>`\ (e.g. `C:\Program Files\OpenNI2\Samples\Bin\OpenNI2\Drivers`).
 
-The examples are available in the folder `<path-to-your-openni2-installation-folder\Samples\Bin`:
+You can find the precompiled examples in the folder `<path-to-your-openni2-installation-folder\Samples\Bin`:
 * `ClosestPointViewer.exe`: creates an OpenGL window displaying the depth stream and showing the closest point to the camera
 * `EventBasedRead.exe`: opens a console and displays the results of the read events
 * `MultiDepthViewer.exe`: creates an OpenGL window displaying the depth stream coming from multiple cameras
