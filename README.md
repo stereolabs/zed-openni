@@ -102,9 +102,29 @@ Configure the following parameters
 Click on `Configure`, select the build environment and then click on `Generate`.
 If everything is correctly configured you can now click `Open Project` and then build the driver using Visual Studio.
 
-The build process generates a file named `libzeddriver.dll` in the sub-folder `Release` of the folder chosen as build destination. This file must be manually copied in the folder of OpenNI2 containing all the available drivers to be able to run the OpenNI2 examples using the ZED camera.
+The build process generates a file named `libzeddriver.dll` in the sub-folder `Release` of the folder chosen as build 
+destination. This file must be manually copied in the folder of OpenNI2 containing all the available drivers to be able 
+to run the OpenNI2 examples using the ZED camera.
 
 ## Examples
+
+### Windows
+
+The examples provided with this repository cannot be built for Windows because of the high number of dependencies to be 
+satisfied that require a highly laborious and sophisticated process.
+You can however run the examples provided with OpenNI2. OpenNI2 must be able to recognize the ZED camera as a Primesense 
+compatible device, this is possible manually copying the file `libzeddriver.dll` in the folder 
+`<path-to-your-openni2-installation-folder\Samples\Bin\OpenNI2\Drivers>`\ (e.g. `C:\Program Files\OpenNI2\Samples\Bin\OpenNI2\Drivers`).
+
+You can find the precompiled examples in the folder `<path-to-your-openni2-installation-folder\Samples\Bin`:
+* `ClosestPointViewer.exe`: creates an OpenGL window displaying the depth stream and showing the closest point to the camera
+* `EventBasedRead.exe`: opens a console and displays the results of the read events
+* `MultiDepthViewer.exe`: creates an OpenGL window displaying the depth stream coming from multiple cameras
+* `MultipleStreamRead.exe`: opens a console and displays the results of the read events from multiple cameras
+* `MWClosestPointApp.exe`: opens a console and displays the distance of the closest point to the camera
+* `SimpleRead.exe`: opens a console and displays the distance of the central point of the depth image
+* `SimpleViewer.exe`: creates an OpenGL window displaying the color/depth combined stream (_key 1_), the depth stream (_key 2_) and the color stream (_key 3_)
+* `NiViewer.exe`: advance test GUI
 
 ### Linux
 The driver comes with five examples demonstrating how to use it to retrieve and show color images, depth maps and point clouds.
@@ -115,19 +135,11 @@ The driver comes with five examples demonstrating how to use it to retrieve and 
 * [SimpleRegistered](https://github.com/stereolabs/zed-openni/tree/main/examples/SimpleRegistered): _[requires OpenCV]_ creates two OpenCV windows displaying the synchronized color and depth streams
 * [SimplePointCloud](https://github.com/stereolabs/zed-openni/tree/main/examples/SimplePointCloud): _[requires OpenCV]_ creates an OpenCV 3D window displaying the color stream mappend on a 3D point cloud
 
-### Windows
+It is possible to execute the precompiled OpenNI2 examples manually copying the driver file `libzeddriver.so` in the 
+folder `<path-to-your-openni2-installation-folder\Samples\Bin\OpenNI2\Drivers>` and `<path-to-your-openni2-installation-folder\Tools\OpenNI2\Drivers>`
 
-The examples provided with this repository cannot be built for Windows because of the high number of dependencies to be satisfied that require a highly laborious and sophisticated process.
-You can however run the examples provided with OpenNI2. OpenNI2 must be able to recognize the ZED camera as a Primesense compatible device, this is possible manually copying the file `libzeddriver.dll` in the folder `<path-to-your-openni2-installation-folder\Samples\Bin\OpenNI2\Drivers>`\ (e.g. `C:\Program Files\OpenNI2\Samples\Bin\OpenNI2\Drivers`).
 
-You can find the precompiled examples in the folder `<path-to-your-openni2-installation-folder\Samples\Bin`:
-* `ClosestPointViewer.exe`: creates an OpenGL window displaying the depth stream and showing the closest point to the camera
-* `EventBasedRead.exe`: opens a console and displays the results of the read events
-* `MultiDepthViewer.exe`: creates an OpenGL window displaying the depth stream coming from multiple cameras
-* `MultipleStreamRead.exe`: opens a console and displays the results of the read events from multiple cameras
-* `MWClosestPointApp.exe`: opens a console and displays the distance of the closest point to the camera
-* `SimpleRead.exe`: opens a console and displays the distance of the central point of the depth image
-* `SimpleViewer.exe`: creates an OpenGL window displaying the color/depth combined stream (_key 1_), the depth stream (_key 2_) and the color stream (_key 3_)
+
 
 ## Camera configuration
 

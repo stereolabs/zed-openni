@@ -56,8 +56,8 @@ public:
 
     inline bool isEnabled() const { return mEnabled; }
 
-    virtual OniStatus start();
-    virtual void stop();
+    virtual OniStatus start() override;
+    virtual void stop() override;
 
     inline std::shared_ptr<ZedDevice> getDevice() { return mDevice; }
 

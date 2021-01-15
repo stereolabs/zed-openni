@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_SHARED_MODULE_PREFIX "lib")
 set(CMAKE_SHARED_LIBRARY_PREFIX "lib")
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 ###########################################################################
 ### HEADER FILES
@@ -60,17 +60,21 @@ link_directories(${LIBRARY_INSTALL_DIR})
 add_library (${LIB_NAME} SHARED
     ${HDR_FILES}
     ${SRC_FILES}
-    )
+)
 target_link_libraries( ${LIB_NAME}
     ${ZED_LIBS}
-    )
+)
 
 # NOTE: the driver is automatically deployed in the Driver folder in OpenNI2
 # Post-Build Event (Copy Dependencies)
-if(UNIX)
-    add_custom_command( TARGET ${LIB_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib${LIB_NAME}.so "${OPENNI2_LIB_DIRS}/OpenNI2/Drivers/lib${LIB_NAME}r.so")
-elseif(WIN32)
-    add_custom_command( TARGET ${LIB_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib${LIB_NAME}.dll "${OPENNI2_LIB_DIRS}/OpenNI2/Drivers/lib${LIB_NAME}.dll")
-endif()
+
+add_custom_command(
+    TARGET ${LIB_NAME}
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    $<TARGET_FILE:${LIB_NAME}>
+    "${OPENNI2_LIB_DIRS}/OpenNI2/Drivers"
+)
+
 
 

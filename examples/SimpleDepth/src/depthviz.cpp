@@ -152,7 +152,8 @@ inline void DepthViz::showDepth()
     // Scaling
     cv::Mat scale_mat;
     const uint32_t max_range = depth_stream.getMaxPixelValue();
-    depth_mat.convertTo( scale_mat, CV_8U, -255.0 / max_range, 255.0 ); // 0-max -> 255(white)-0(black)
+    //depth_mat.convertTo( scale_mat, CV_8U, -255.0 / max_range, 255.0 ); // 0-max -> 255(white)-0(black)
+    depth_mat.convertTo( scale_mat, CV_8U, 255.0 / max_range, 0.0 );
 
     // Apply False Colour
     cv::applyColorMap( scale_mat, scale_mat, cv::COLORMAP_JET);

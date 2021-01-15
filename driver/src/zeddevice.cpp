@@ -323,7 +323,7 @@ void ZedDevice::initCameraParams()
     if(!mZedInitParams.load(DEFAULT_INIT_PARAMS_FILE))
     {
         zedLogDebug("A valid ZED initialization file has not been found. Using default configuration.");
-        mZedInitParams.camera_fps = 15;
+        mZedInitParams.camera_fps = 60;
         mZedInitParams.camera_resolution = sl::RESOLUTION::HD720;
         mZedInitParams.coordinate_units = sl::UNIT::MILLIMETER;
         mZedInitParams.depth_maximum_distance = 9999.f;

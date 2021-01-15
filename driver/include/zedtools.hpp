@@ -107,9 +107,12 @@ inline int getPixelFormatBytes(OniPixelFormat type)
         return 3;
     case ONI_PIXEL_FORMAT_GRAY8:
         return 1;
+    default:
+        zedLogError("Invalid OniPixelFormat=%d", (int)type);
+        return 0;
     }
 
-    zedLogError("Invalid OniPixelFormat=%d", (int)type);
+
     return 0;
 }
 
