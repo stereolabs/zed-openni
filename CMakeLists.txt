@@ -78,7 +78,10 @@ macro_display_feature_log()
 
 if(UNIX)
     message(STATUS "[${PROJECT_NAME}] OS: Unix")
-    add_definitions(-std=c++14 -Wno-deprecated-declarations -Wno-write-strings -no-pie)
+    add_definitions(-std=c++14 -Wno-deprecated-declarations -Wno-write-strings)
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        add_definitions(-no-pie)
+    endif()
 endif(UNIX)
 
 if(WIN32)

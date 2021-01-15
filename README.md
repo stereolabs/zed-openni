@@ -15,6 +15,8 @@
 [OpenNI](https://github.com/occipital/openni2) provides a uniform interface that third party middleware developers can use to interact with depth sensors.
 The ZED OpenNI driver transforms each ZED camera into a PrimeSense compatible depth sensors to use it with the [OpenNI 2 API](https://github.com/occipital/openni2).
 
+![](images/zed-openni.png)
+
 ## Build
 
 ### Install OpenNI2
@@ -196,6 +198,8 @@ The ZED OpenNI2 driver is compatible with the NiTE v2.2 framework.
 To execute the precompiled example available with NiTE simply copy the ZED driver file (`libzeddriver.so` [Linux] or 
 `libzeddriver.dll` [Windows])in the folder `Samples/Bin/OpenNI2/Drivers` under the root of the NiTE installation folder.
 NiTE will automatically load the new driver searching for a connected ZED camera when starting.
+
+![](images/zed-nite.png)
 
 ## License
 
