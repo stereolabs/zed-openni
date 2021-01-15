@@ -85,6 +85,17 @@ inline void ColorViz::initializeColor()
     // Create Stream
     OPENNI_CHECK( color_stream.create( device, openni::SENSOR_COLOR ) );
 
+    const openni::SensorInfo* colorSensInfo = device.getSensorInfo(openni::SENSOR_COLOR);
+    const openni::Array<openni::VideoMode>& supportedColorModes = colorSensInfo->getSupportedVideoModes();
+
+    printf("\n * Available Color modes:\n");
+    for( int i=0; i<supportedColorModes.getSize(); i++ )
+    {
+        printf("\t#%d %dx%d@%d\n", i,supportedColorModes[i].getResolutionX(),supportedColorModes[i].getResolutionY(),supportedColorModes[i].getFps());
+    }
+
+    color_stream.setVideoMode(supportedColorModes[0]);
+
     // Start Stream
     OPENNI_CHECK( color_stream.start() );
 }

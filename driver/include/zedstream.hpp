@@ -66,6 +66,7 @@ public:
     inline ZedStreamProfileInfo getProfile() const { return mProfile; }
     inline const std::vector<ZedStreamProfileInfo>* getProfiles() const {return &mProfiles;}
     inline int getSensorId() const { return mSensorId; }
+    inline sl::Resolution getRuntimeRes(){return mRuntimeRes;}
 
 protected:
     ZedStream(const ZedStream&);
@@ -73,6 +74,7 @@ protected:
 
     OniStatus initialize(std::shared_ptr<ZedDevice> device, int sensorId,
                          int profileId, const std::vector<ZedStreamProfileInfo> *profiles);
+    OniStatus changeVideoMode(OniVideoMode newMode);
     void shutdown();
 
     bool getTable(void* dst, int* size, const std::vector<uint16_t>& table);
@@ -82,6 +84,8 @@ protected:
 
 private:
     bool mVerbose = false;
+
+    std::mutex mVideoModeMutex;
 
     std::shared_ptr<ZedDevice> mDevice;
 
@@ -98,6 +102,8 @@ private:
     float mFovX;
     float mFovY;
 
+    sl::Resolution mRuntimeRes;
+
     std::vector<uint16_t> m_s2d;
     std::vector<uint16_t> m_d2s;
 };
@@ -105,19 +111,19 @@ private:
 class ZedDepthStream : public ZedStream
 {
 public:
-    ZedDepthStream() : ZedStream(ONI_SENSOR_DEPTH) {}
+    ZedDepthStream(bool verbose) : ZedStream(ONI_SENSOR_DEPTH, verbose) {}
 };
 
 class ZedColorStream : public ZedStream
 {
 public:
-    ZedColorStream() : ZedStream(ONI_SENSOR_COLOR) {}
+    ZedColorStream(bool verbose) : ZedStream(ONI_SENSOR_COLOR, verbose) {}
 };
 
 class ZedGrayStream : public ZedStream
 {
 public:
-    ZedGrayStream() : ZedStream(ONI_SENSOR_IR) {}
+    ZedGrayStream(bool verbose) : ZedStream(ONI_SENSOR_IR, verbose) {}
 };
 
 } } // namespace driver // namespace oni

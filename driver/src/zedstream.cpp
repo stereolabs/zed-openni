@@ -66,15 +66,18 @@ OniStatus ZedStream::initialize(std::shared_ptr<ZedDevice> device, int sensorId,
         }
     }
 
+    mRuntimeRes.width = mProfile.width;
+    mRuntimeRes.height = mProfile.height;
+
     if(mDevice->mRightMeasure)
     {
-        mFovX = device->mZed.getCameraInformation().camera_configuration.calibration_parameters.left_cam.h_fov;
-        mFovY = device->mZed.getCameraInformation().camera_configuration.calibration_parameters.left_cam.v_fov;
+        mFovX = mDevice->mZed.getCameraInformation(mRuntimeRes).camera_configuration.calibration_parameters.left_cam.h_fov;
+        mFovY = mDevice->mZed.getCameraInformation(mRuntimeRes).camera_configuration.calibration_parameters.left_cam.v_fov;
     }
     else
     {
-        mFovX = device->mZed.getCameraInformation().camera_configuration.calibration_parameters.right_cam.h_fov;
-        mFovY = device->mZed.getCameraInformation().camera_configuration.calibration_parameters.right_cam.v_fov;
+        mFovX = mDevice->mZed.getCameraInformation(mRuntimeRes).camera_configuration.calibration_parameters.right_cam.h_fov;
+        mFovY = mDevice->mZed.getCameraInformation(mRuntimeRes).camera_configuration.calibration_parameters.right_cam.v_fov;
     }
 
     mVideoMode.fps = mProfile.framerate;
@@ -88,6 +91,44 @@ OniStatus ZedStream::initialize(std::shared_ptr<ZedDevice> device, int sensorId,
         setTable(S2D, sizeof(S2D), m_s2d); // XN_STREAM_PROPERTY_S2D_TABLE
         setTable(D2S, sizeof(D2S), m_d2s); // XN_STREAM_PROPERTY_D2S_TABLE
     }
+
+    return ONI_STATUS_OK;
+}
+
+OniStatus ZedStream::changeVideoMode(OniVideoMode newMode)
+{
+    for (auto iter = mProfiles.begin(); iter != mProfiles.end(); ++iter)
+    {
+        ZedStreamProfileInfo& sp = *iter;
+
+        if(sp.width==newMode.resolutionX &&
+                sp.height==newMode.resolutionY &&
+                sp.framerate==newMode.fps &&
+                sp.format==newMode.pixelFormat)
+        {
+            mProfile = sp;
+            break;
+        }
+    }
+
+    mRuntimeRes.width = mProfile.width;
+    mRuntimeRes.height = mProfile.height;
+
+    if(mDevice->mRightMeasure)
+    {
+        mFovX = mDevice->mZed.getCameraInformation(mRuntimeRes).camera_configuration.calibration_parameters.left_cam.h_fov;
+        mFovY = mDevice->mZed.getCameraInformation(mRuntimeRes).camera_configuration.calibration_parameters.left_cam.v_fov;
+    }
+    else
+    {
+        mFovX = mDevice->mZed.getCameraInformation(mRuntimeRes).camera_configuration.calibration_parameters.right_cam.h_fov;
+        mFovY = mDevice->mZed.getCameraInformation(mRuntimeRes).camera_configuration.calibration_parameters.right_cam.v_fov;
+    }
+
+    mVideoMode.fps = mProfile.framerate;
+    mVideoMode.pixelFormat = mProfile.format;
+    mVideoMode.resolutionX = (int)mProfile.width;
+    mVideoMode.resolutionY = (int)mProfile.height;
 
     return ONI_STATUS_OK;
 }
@@ -126,6 +167,12 @@ int ZedStream::isVideoModeSupported(OniVideoMode* mode)
     {
         ZedStreamProfileInfo spi = mProfiles[spiIdx];
 
+        zedLogDebug("New video mode: %dx%d @%d format=%d",
+                    (int)mode->resolutionX, (int)mode->resolutionY, (int)mode->fps, (int)mode->pixelFormat);
+
+        zedLogDebug("Compare profile: %dx%d @%d format=%d",
+                    (int)spi.width, (int)spi.height, (int)spi.framerate, (int)spi.format);
+
         if(spi.width==mode->resolutionX &&
                 spi.height==mode->resolutionY &&
                 spi.framerate==mode->fps &&
@@ -144,6 +191,30 @@ OniStatus ZedStream::setProperty(int propertyId, const void* data, int dataSize)
 
     switch (propertyId)
     {
+    case ONI_STREAM_PROPERTY_VIDEO_MODE:
+    {
+        if (data && (dataSize == sizeof(OniVideoMode)))
+        {
+            OniVideoMode* mode = (OniVideoMode*)data;
+            if(mVerbose)
+                zedLogDebug("New video mode: %dx%d @%d format=%d",
+                            (int)mode->resolutionX, (int)mode->resolutionY, (int)mode->fps, (int)mode->pixelFormat);
+
+            if (isVideoModeSupported(mode)!=-1)
+            {
+                std::lock_guard<std::mutex> lock(mVideoModeMutex);
+
+                changeVideoMode(*mode);
+                if(mVerbose)
+                    zedLogDebug("Video Mode changed");
+                return ONI_STATUS_OK;
+            }
+            zedLogError("Video mode not supported");
+            return ONI_STATUS_ERROR;
+        }
+        break;
+    }
+
     case ONI_STREAM_PROPERTY_AUTO_WHITE_BALANCE:
     {
         if (data && dataSize == sizeof(OniBool) )
@@ -322,6 +393,8 @@ OniStatus ZedStream::getProperty(int propertyId, void* data, int* dataSize)
     {
         if (data && dataSize && *dataSize == sizeof(OniVideoMode))
         {
+            std::lock_guard<std::mutex> lock(mVideoModeMutex);
+
             *((OniVideoMode*)data) = mVideoMode;
             if(mVerbose)
                 zedLogFunc("\t OniVideoMode: Format: %d, FPS: %d, %dx%d",(int)mVideoMode.pixelFormat,mVideoMode.fps, mVideoMode.resolutionX, mVideoMode.resolutionY);

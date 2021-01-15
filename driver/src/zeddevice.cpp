@@ -60,7 +60,7 @@ void ZedDevice::shutdown()
         {
             mGrabThread->join();
         }
-         mZed.close();
+        mZed.close();
     }
 }
 
@@ -192,9 +192,9 @@ void ZedDevice::publishFrame(std::shared_ptr<ZedStream> stream, int frameIdx)
         zedLogDebug("Publishing Depth: ");
 #endif
         if(mRightMeasure)
-            ret = mZed.retrieveMeasure( zedFrame, sl::MEASURE::DEPTH_U16_MM_RIGHT);
+            ret = mZed.retrieveMeasure( zedFrame, sl::MEASURE::DEPTH_U16_MM_RIGHT, sl::MEM::CPU, stream->getRuntimeRes() );
         else
-            ret = mZed.retrieveMeasure( zedFrame, sl::MEASURE::DEPTH_U16_MM );
+            ret = mZed.retrieveMeasure( zedFrame, sl::MEASURE::DEPTH_U16_MM, sl::MEM::CPU, stream->getRuntimeRes() );
         frameData = zedFrame.getPtr<sl::ushort1>();
         break;
     case ONI_SENSOR_COLOR:
@@ -202,16 +202,16 @@ void ZedDevice::publishFrame(std::shared_ptr<ZedStream> stream, int frameIdx)
         zedLogDebug("Publishing Color: ");
 #endif
         if(mRightMeasure)
-            ret = mZed.retrieveImage( zedFrame, sl::VIEW::RIGHT );
+            ret = mZed.retrieveImage( zedFrame, sl::VIEW::RIGHT, sl::MEM::CPU, stream->getRuntimeRes() );
         else
-            ret = mZed.retrieveImage( zedFrame, sl::VIEW::LEFT );
+            ret = mZed.retrieveImage( zedFrame, sl::VIEW::LEFT, sl::MEM::CPU, stream->getRuntimeRes() );
         frameData = zedFrame.getPtr<sl::uchar4>();
         break;
     case ONI_SENSOR_IR:
         if(mRightMeasure)
-            ret = mZed.retrieveImage( zedFrame, sl::VIEW::RIGHT_GRAY );
+            ret = mZed.retrieveImage( zedFrame, sl::VIEW::RIGHT_GRAY, sl::MEM::CPU, stream->getRuntimeRes() );
         else
-            ret = mZed.retrieveImage( zedFrame, sl::VIEW::LEFT_GRAY );
+            ret = mZed.retrieveImage( zedFrame, sl::VIEW::LEFT_GRAY, sl::MEM::CPU, stream->getRuntimeRes() );
         frameData = zedFrame.getPtr<sl::uchar1>();
         break;
     }
@@ -463,20 +463,63 @@ OniStatus ZedDevice::initializeStreams()
 
     int profileId = 0;
 
-    for(size_t res=static_cast<int>(sl::RESOLUTION::HD2K); res<static_cast<int>(sl::RESOLUTION::LAST); res++)
-    {
-        sl::RESOLUTION zed_res = static_cast<sl::RESOLUTION>(res);
-        sl::Resolution resol = sl::getResolution(zed_res);
+    bool isResVGA=true;
 
-        // ----> 15 FPS
+    sl::RESOLUTION zed_res = mZedInitParams.camera_resolution;
+    sl::Resolution native_res = sl::getResolution(zed_res);
+
+    // ----> Native resolution
+    for(int i=0; i<SENSOR_COUNT; i++)
+    {
+        ZedStreamProfileInfo spi;
+        spi.sensorId = i;
+        spi.profileId = profileId;
+        spi.width = native_res.width;
+        spi.height = native_res.height;
+        spi.framerate = mZedInitParams.camera_fps;
+        spi.zedRes = zed_res;
+        if(i==0)
+        {
+            spi.streamType = ONI_SENSOR_COLOR;
+            spi.format = ONI_PIXEL_FORMAT_RGB888;
+            spi.stride = spi.width*3;
+        }
+        else if(i==1)
+        {
+            spi.streamType = ONI_SENSOR_DEPTH;
+            spi.format = ONI_PIXEL_FORMAT_DEPTH_1_MM;
+            spi.stride = spi.width*2;
+        }
+        else
+        {
+            spi.streamType = ONI_SENSOR_IR;
+            spi.format = ONI_PIXEL_FORMAT_GRAY8;
+            spi.stride = spi.width;
+        }
+        mProfiles.push_back(spi);
+
+        if(mVerbose)
+            zedLogDebug("\ttype=%d sensorId=%d profileId=%d format=%d width=%d height=%d framerate=%d",
+                        (int)spi.streamType, (int)spi.sensorId, (int)spi.profileId, (int)spi.format,
+                        (int)spi.width, (int)spi.height, (int)spi.framerate);
+
+        sensorStreams[spi.profileId] = spi.streamType;
+    }
+    profileId++;
+    // <----  Native resolution
+
+    // ----> 640x480
+    if(zed_res!=sl::RESOLUTION::VGA)
+    {
+        isResVGA = false;
         for(int i=0; i<SENSOR_COUNT; i++)
         {
             ZedStreamProfileInfo spi;
             spi.sensorId = i;
             spi.profileId = profileId;
-            spi.width = resol.width;
-            spi.height = resol.height;
-            spi.framerate = 15;
+            spi.width = 640;
+            spi.height = 480;
+            spi.framerate = mZedInitParams.camera_fps;
             spi.zedRes = zed_res;
             if(i==0)
             {
@@ -506,138 +549,96 @@ OniStatus ZedDevice::initializeStreams()
             sensorStreams[spi.profileId] = spi.streamType;
         }
         profileId++;
-        // <---- 15 FPS
+    }
+    // <---- 640x480
 
-        // ----> 30 FPS
-        if(zed_res != sl::RESOLUTION::HD2K)
+    // ----> 320x240
+    for(int i=0; i<SENSOR_COUNT; i++)
+    {
+        ZedStreamProfileInfo spi;
+        spi.sensorId = i;
+        spi.profileId = profileId;
+        spi.width = 320;
+        spi.height = 240;
+        spi.framerate = mZedInitParams.camera_fps;
+        spi.zedRes = zed_res;
+        if(i==0)
         {
-            for(int i=0; i<SENSOR_COUNT; i++)
-            {
-                ZedStreamProfileInfo spi;
-                spi.sensorId = i;
-                spi.profileId = profileId;
-                spi.width = resol.width;
-                spi.height = resol.height;
-                spi.framerate = 30;
-                spi.zedRes = zed_res;
-                if(i==0)
-                {
-                    spi.streamType = ONI_SENSOR_COLOR;
-                    spi.format = ONI_PIXEL_FORMAT_RGB888;
-                    spi.stride = spi.width*3;
-                }
-                else if(i==1)
-                {
-                    spi.streamType = ONI_SENSOR_DEPTH;
-                    spi.format = ONI_PIXEL_FORMAT_DEPTH_1_MM;
-                    spi.stride = spi.width*2;
-                }
-                else
-                {
-                    spi.streamType = ONI_SENSOR_IR;
-                    spi.format = ONI_PIXEL_FORMAT_GRAY8;
-                    spi.stride = spi.width;
-                }
-                mProfiles.push_back(spi);
-
-                if(mVerbose)
-                    zedLogDebug("\ttype=%d sensorId=%d profileId=%d format=%d width=%d height=%d framerate=%d",
-                                (int)spi.streamType, (int)spi.sensorId, (int)spi.profileId, (int)spi.format,
-                                (int)spi.width, (int)spi.height, (int)spi.framerate);
-
-                sensorStreams[spi.profileId] = spi.streamType;
-            }
-            profileId++;
+            spi.streamType = ONI_SENSOR_COLOR;
+            spi.format = ONI_PIXEL_FORMAT_RGB888;
+            spi.stride = spi.width*3;
         }
-        // <---- 30 FPS
-
-        // ----> 60 FPS
-        if(zed_res != sl::RESOLUTION::HD2K &&
-                zed_res != sl::RESOLUTION::HD1080)
+        else if(i==1)
         {
-            for(int i=0; i<SENSOR_COUNT; i++)
-            {
-                ZedStreamProfileInfo spi;
-                spi.sensorId = i;
-                spi.profileId = profileId;
-                spi.width = resol.width;
-                spi.height = resol.height;
-                spi.framerate = 60;
-                spi.zedRes = zed_res;
-                if(i==0)
-                {
-                    spi.streamType = ONI_SENSOR_COLOR;
-                    spi.format = ONI_PIXEL_FORMAT_RGB888;
-                    spi.stride = spi.width*3;
-                }
-                else if(i==1)
-                {
-                    spi.streamType = ONI_SENSOR_DEPTH;
-                    spi.format = ONI_PIXEL_FORMAT_DEPTH_1_MM;
-                    spi.stride = spi.width*2;
-                }
-                else
-                {
-                    spi.streamType = ONI_SENSOR_IR;
-                    spi.format = ONI_PIXEL_FORMAT_GRAY8;
-                    spi.stride = spi.width;
-                }
-                mProfiles.push_back(spi);
-
-                if(mVerbose)
-                    zedLogDebug("\ttype=%d sensorId=%d profileId=%d format=%d width=%d height=%d framerate=%d",
-                                (int)spi.streamType, (int)spi.sensorId, (int)spi.profileId, (int)spi.format,
-                                (int)spi.width, (int)spi.height, (int)spi.framerate);
-
-                sensorStreams[spi.profileId] = spi.streamType;
-            }
-            profileId++;
+            spi.streamType = ONI_SENSOR_DEPTH;
+            spi.format = ONI_PIXEL_FORMAT_DEPTH_1_MM;
+            spi.stride = spi.width*2;
         }
-        // <---- 60 FPS
-
-        // ----> 100 FPS
-        if(zed_res == sl::RESOLUTION::VGA)
+        else
         {
-            for(int i=0; i<SENSOR_COUNT; i++)
-            {
-                ZedStreamProfileInfo spi;
-                spi.sensorId = i;
-                spi.profileId = profileId;
-                spi.width = resol.width;
-                spi.height = resol.height;
-                spi.framerate = 100;
-                spi.zedRes = zed_res;
-                if(i==0) // Color
-                {
-                    spi.streamType = ONI_SENSOR_COLOR;
-                    spi.format = ONI_PIXEL_FORMAT_RGB888;
-                    spi.stride = spi.width*3;
-                }
-                else if(i==1) // Depth
-                {
-                    spi.streamType = ONI_SENSOR_DEPTH;
-                    spi.format = ONI_PIXEL_FORMAT_DEPTH_1_MM;
-                    spi.stride = spi.width*2;
-                }
-                else // Gray/IR
-                {
-                    spi.streamType = ONI_SENSOR_IR;
-                    spi.format = ONI_PIXEL_FORMAT_GRAY8;
-                    spi.stride = spi.width;
-                }
-
-                mProfiles.push_back(spi);
-
-                if(mVerbose)
-                    zedLogDebug("\ttype=%d sensorId=%d profileId=%d format=%d width=%d height=%d framerate=%d",
-                                (int)spi.streamType, (int)spi.sensorId, (int)spi.profileId, (int)spi.format,
-                                (int)spi.width, (int)spi.height, (int)spi.framerate);
-
-                sensorStreams[spi.profileId] = spi.streamType;
-            }
-            profileId++;
+            spi.streamType = ONI_SENSOR_IR;
+            spi.format = ONI_PIXEL_FORMAT_GRAY8;
+            spi.stride = spi.width;
         }
-        // <---- 100 FPS
+        mProfiles.push_back(spi);
+
+        if(mVerbose)
+            zedLogDebug("\ttype=%d sensorId=%d profileId=%d format=%d width=%d height=%d framerate=%d",
+                        (int)spi.streamType, (int)spi.sensorId, (int)spi.profileId, (int)spi.format,
+                        (int)spi.width, (int)spi.height, (int)spi.framerate);
+
+        sensorStreams[spi.profileId] = spi.streamType;
+    }
+    profileId++;
+    // <---- 320x240
+
+    // ----> 160x120
+    for(int i=0; i<SENSOR_COUNT; i++)
+    {
+        ZedStreamProfileInfo spi;
+        spi.sensorId = i;
+        spi.profileId = profileId;
+        spi.width = 160;
+        spi.height = 120;
+        spi.framerate = mZedInitParams.camera_fps;
+        spi.zedRes = zed_res;
+        if(i==0)
+        {
+            spi.streamType = ONI_SENSOR_COLOR;
+            spi.format = ONI_PIXEL_FORMAT_RGB888;
+            spi.stride = spi.width*3;
+        }
+        else if(i==1)
+        {
+            spi.streamType = ONI_SENSOR_DEPTH;
+            spi.format = ONI_PIXEL_FORMAT_DEPTH_1_MM;
+            spi.stride = spi.width*2;
+        }
+        else
+        {
+            spi.streamType = ONI_SENSOR_IR;
+            spi.format = ONI_PIXEL_FORMAT_GRAY8;
+            spi.stride = spi.width;
+        }
+        mProfiles.push_back(spi);
+
+        if(mVerbose)
+            zedLogDebug("\ttype=%d sensorId=%d profileId=%d format=%d width=%d height=%d framerate=%d",
+                        (int)spi.streamType, (int)spi.sensorId, (int)spi.profileId, (int)spi.format,
+                        (int)spi.width, (int)spi.height, (int)spi.framerate);
+
+        sensorStreams[spi.profileId] = spi.streamType;
+    }
+    profileId++;
+    // <---- 160x120
+
+
+    size_t start_w=640;
+    size_t start_h=480;
+    if(isResVGA)
+    {
+        start_w=320;
+        start_h=240;
     }
 
     for(int sensorId=0; sensorId<SENSOR_COUNT; sensorId++)
@@ -646,7 +647,7 @@ OniStatus ZedDevice::initializeStreams()
         std::vector<ZedStreamProfileInfo> profiles;
         findStreamProfiles(&profiles, sensType);
 
-        int profId = getCurrentProfileId(&profiles);
+        int profId = getCurrentProfileId(&profiles, start_w, start_h);
 
         if (addStream( sensType, profId, &profiles) != ONI_STATUS_OK)
         {
@@ -713,11 +714,9 @@ int ZedDevice::getProfileId(const std::vector<ZedStreamProfileInfo>* profiles, i
     return -1;
 }
 
-int ZedDevice::getCurrentProfileId(std::vector<ZedStreamProfileInfo>* profiles)
+int ZedDevice::getCurrentProfileId(std::vector<ZedStreamProfileInfo>* profiles, size_t w, size_t h)
 {
     sl::CameraInformation zedInfo = mZed.getCameraInformation();
-    size_t w = zedInfo.camera_configuration.resolution.width;
-    size_t h = zedInfo.camera_configuration.resolution.height;
     int fps = (int)zedInfo.camera_configuration.fps;
 
     if(mVerbose)
@@ -763,9 +762,9 @@ OniStatus ZedDevice::addStream(OniSensorType sensorType, int profileId, std::vec
     std::shared_ptr<ZedStream> streamObj;
     switch (sensorType)
     {
-    case ONI_SENSOR_IR: streamObj = std::make_shared<ZedGrayStream>(); break;
-    case ONI_SENSOR_COLOR: streamObj = std::make_shared<ZedColorStream>(); break;
-    case ONI_SENSOR_DEPTH: streamObj = std::make_shared<ZedDepthStream>(); break;
+    case ONI_SENSOR_IR: streamObj = std::make_shared<ZedGrayStream>(mVerbose); break;
+    case ONI_SENSOR_COLOR: streamObj = std::make_shared<ZedColorStream>(mVerbose); break;
+    case ONI_SENSOR_DEPTH: streamObj = std::make_shared<ZedDepthStream>(mVerbose); break;
 
     default:
     {

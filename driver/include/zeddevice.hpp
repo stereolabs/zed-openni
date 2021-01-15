@@ -51,10 +51,10 @@ protected:
     OniStatus initialize();
     void initCameraParams();
     void shutdown();
-    OniStatus initializeStreams();
+    OniStatus initializeStreams();    
     OniStatus addStream(OniSensorType sensorType, int profileId, std::vector<ZedStreamProfileInfo> *profiles);
     void findStreamProfiles(std::vector<ZedStreamProfileInfo>* dst, OniSensorType sensorType);
-    int getCurrentProfileId(std::vector<ZedStreamProfileInfo>* profiles);
+    int getCurrentProfileId(std::vector<ZedStreamProfileInfo>* profiles, size_t w, size_t h);
     int getProfileId(const std::vector<ZedStreamProfileInfo>* profiles, int width, int height, int fps);
 
     void publishFrame(std::shared_ptr<ZedStream> stream, int frameId);

@@ -59,6 +59,7 @@ Take note of the installation path because you will need it for the next steps.
 
 **Prerequisites**
 
+* ZED SDK [>=3.3.4]
 * CMake [>= v3.10]
 * _[Optional]_ OpenCV, optionally required to build all the examples.
 
@@ -88,6 +89,7 @@ Please be sure to have write permission for the folder `<openni2-path>/Redist/Op
 
 **Prerequisites**
 
+* ZED SDK [>=3.3.4]
 * CMake [>v3.10] is required to configure the ZED OpenNI driver before building. You can install the latest version downloading it from the [CMake website](https://cmake.org/download/).
 
 **Build**
@@ -137,9 +139,6 @@ The driver comes with five examples demonstrating how to use it to retrieve and 
 
 It is possible to execute the precompiled OpenNI2 examples manually copying the driver file `libzeddriver.so` in the 
 folder `<path-to-your-openni2-installation-folder\Samples\Bin\OpenNI2\Drivers>` and `<path-to-your-openni2-installation-folder\Tools\OpenNI2\Drivers>`
-
-
-
 
 ## Camera configuration
 
@@ -194,8 +193,8 @@ Both the files, if not existing, will be automatically created with the default 
 
 ## NiTE 2 integration
 The ZED OpenNI2 driver is compatible with the NiTE v2.2 framework. 
-To execute the precompiled example available with NiTE simply copy the ZED driver file (`libzeddriver.so` or `libzeddriver.dll`)
-in the folder `Samples/Bin/OpenNI2/Drivers` under the root of the NiTE installation folder.
+To execute the precompiled example available with NiTE simply copy the ZED driver file (`libzeddriver.so` [Linux] or 
+`libzeddriver.dll` [Windows])in the folder `Samples/Bin/OpenNI2/Drivers` under the root of the NiTE installation folder.
 NiTE will automatically load the new driver searching for a connected ZED camera when starting.
 
 ## License

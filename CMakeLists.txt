@@ -37,10 +37,9 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 include(MacroLogFeature)
 
 set(OPENNI2_DIR "" CACHE PATH "Root of the OpenNI2 SDK directory")
+message(STATUS "OpenNI2 folder: ${OPENNI2_DIR}")
 message("-----------------------------------------------------------------------------")
 if(EXISTS ${OPENNI2_DIR}/Include)
-    message(STATUS "OpenNI2 folder: ${OPENNI2_DIR}")
-
     set(OPENNI2_INCLUDE_DIRS ${OPENNI2_DIR}/Include)
     message(STATUS "OpenNI2 include folder: ${OPENNI2_INCLUDE_DIRS}")
 
