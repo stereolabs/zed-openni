@@ -180,6 +180,12 @@ Decreasing this value will remove depth data from image areas which are uniform.
 
 Both the files, if not existing, will be automatically created with the default parameters by the driver in the same folder of the executable.
 
+## NiTE 2 integration
+The ZED OpenNI2 driver is compatible with the NiTE v2.2 framework. 
+To execute the precompiled example available with NiTE simply copy the ZED driver file (`libzeddriver.so` or `libzeddriver.dll`)
+in the folder `Samples/Bin/OpenNI2/Drivers` under the root of the NiTE installation folder.
+NiTE will automatically load the new driver searching for a connected ZED camera when starting.
+
 ## License
 
 This library is licensed under the LGPL License.

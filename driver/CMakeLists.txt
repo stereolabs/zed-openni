@@ -8,8 +8,6 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_SHARED_MODULE_PREFIX "lib")
 set(CMAKE_SHARED_LIBRARY_PREFIX "lib")
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/OpenNI2/Drivers)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/OpenNI2/Drivers)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 ###########################################################################
@@ -17,14 +15,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 ###########################################################################
 FILE(GLOB_RECURSE HDR_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp
-)
+    )
 
 ###########################################################################
 ### SOURCE FILES
 ###########################################################################
 FILE(GLOB_RECURSE SRC_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
-)
+    )
 
 ###########################################################################
 ### ZED LIBS
@@ -34,7 +32,7 @@ SET(ZED_LIBS
     ${CUDA_CUDA_LIBRARY}
     ${CUDA_CUDART_LIBRARY}
     ${CUDA_NPP_LIBRARIES_ZED}
-)
+    )
 
 ###########################################################################
 ### FLAGS
@@ -62,16 +60,17 @@ link_directories(${LIBRARY_INSTALL_DIR})
 add_library (${LIB_NAME} SHARED
     ${HDR_FILES}
     ${SRC_FILES}
-)
-set_target_properties(${LIB_NAME} PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY_DEBUG "${OPENNI2_LIB_DIRS}/OpenNI2/Drivers/"
-    LIBRARY_OUTPUT_DIRECTORY_RELEASE "${OPENNI2_LIB_DIRS}/OpenNI2/Drivers/"
-    LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO "${OPENNI2_LIB_DIRS}/OpenNI2/Drivers/"
-    LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL "${OPENNI2_LIB_DIRS}/OpenNI2/Drivers/"
-)
+    )
 target_link_libraries( ${LIB_NAME}
     ${ZED_LIBS}
-)
+    )
 
 # NOTE: the driver is automatically deployed in the Driver folder in OpenNI2
+# Post-Build Event (Copy Dependencies)
+if(UNIX)
+    add_custom_command( TARGET ${LIB_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib${LIB_NAME}.so "${OPENNI2_LIB_DIRS}/OpenNI2/Drivers/lib${LIB_NAME}r.so")
+elseif(WIN32)
+    add_custom_command( TARGET ${LIB_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib${LIB_NAME}.dll "${OPENNI2_LIB_DIRS}/OpenNI2/Drivers/lib${LIB_NAME}.dll")
+endif()
+
 
