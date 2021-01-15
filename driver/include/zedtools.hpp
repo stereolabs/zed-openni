@@ -24,7 +24,7 @@
 #include <Driver/OniDriverAPI.h>
 #include <sl/Camera.hpp>
 
-//#define EMULATE_PRIMESENSE_HARDWARE // HACK: NiTE only runs on PrimeSense SoC, so we simulate it
+#define EMULATE_PRIMESENSE_HARDWARE // HACK: NiTE only runs on PrimeSense SoC, so we simulate it
 
 #define DEFAULT_INIT_PARAMS_FILE "./ZedInitConfig.yaml"
 #define DEFAULT_RT_PARAMS_FILE "./ZedRuntimeConfig.yaml"

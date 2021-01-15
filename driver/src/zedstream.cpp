@@ -496,6 +496,86 @@ OniStatus ZedStream::getProperty(int propertyId, void* data, int* dataSize)
         break;
     }
 
+    case XN_STREAM_PROPERTY_GAIN:
+    {
+        if (data && dataSize && *dataSize == sizeof(unsigned long long) && mOniType == ONI_SENSOR_DEPTH)
+        {
+            *((unsigned long long*)data) = GAIN_VAL;
+            return ONI_STATUS_OK;
+        }
+        break;
+    }
+
+    case XN_STREAM_PROPERTY_CONST_SHIFT:
+    {
+        if (data && dataSize && *dataSize == sizeof(unsigned long long) && mOniType == ONI_SENSOR_DEPTH)
+        {
+            *((unsigned long long*)data) = CONST_SHIFT_VAL;
+            return ONI_STATUS_OK;
+        }
+        break;
+    }
+
+    case XN_STREAM_PROPERTY_MAX_SHIFT:
+    {
+        if (data && dataSize && *dataSize == sizeof(unsigned long long) && mOniType == ONI_SENSOR_DEPTH)
+        {
+            *((unsigned long long*)data) = MAX_SHIFT_VAL;
+            return ONI_STATUS_OK;
+        }
+        break;
+    }
+
+    case XN_STREAM_PROPERTY_PARAM_COEFF:
+    {
+        if (data && dataSize && *dataSize == sizeof(unsigned long long) && mOniType == ONI_SENSOR_DEPTH)
+        {
+            *((unsigned long long*)data) = PARAM_COEFF_VAL;
+            return ONI_STATUS_OK;
+        }
+        break;
+    }
+
+    case XN_STREAM_PROPERTY_SHIFT_SCALE:
+    {
+        if (data && dataSize && *dataSize == sizeof(unsigned long long) && mOniType == ONI_SENSOR_DEPTH)
+        {
+            *((unsigned long long*)data) = SHIFT_SCALE_VAL;
+            return ONI_STATUS_OK;
+        }
+        break;
+    }
+
+    case XN_STREAM_PROPERTY_ZERO_PLANE_DISTANCE:
+    {
+        if (data && dataSize && *dataSize == sizeof(unsigned long long) && mOniType == ONI_SENSOR_DEPTH)
+        {
+            *((unsigned long long*)data) = ZERO_PLANE_DISTANCE_VAL;
+            return ONI_STATUS_OK;
+        }
+        break;
+    }
+
+    case XN_STREAM_PROPERTY_ZERO_PLANE_PIXEL_SIZE:
+    {
+        if (data && dataSize && *dataSize == sizeof(double) && mOniType == ONI_SENSOR_DEPTH)
+        {
+            *((double*)data) = ZERO_PLANE_PIXEL_SIZE_VAL;
+            return ONI_STATUS_OK;
+        }
+        break;
+    }
+
+    case XN_STREAM_PROPERTY_EMITTER_DCMOS_DISTANCE:
+    {
+        if (data && dataSize && *dataSize == sizeof(double) && mOniType == ONI_SENSOR_DEPTH)
+        {
+            *((double*)data) = EMITTER_DCMOS_DISTANCE_VAL;
+            return ONI_STATUS_OK;
+        }
+        break;
+    }
+
     case XN_STREAM_PROPERTY_S2D_TABLE:
     {
         if (data && dataSize && mOniType == ONI_SENSOR_DEPTH)

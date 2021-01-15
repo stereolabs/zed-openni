@@ -18,6 +18,15 @@
 //
 ///////////////////////////////////////////////////////////////////////////
 
+static const unsigned long long GAIN_VAL = 42;
+static const unsigned long long CONST_SHIFT_VAL = 200;
+static const unsigned long long MAX_SHIFT_VAL = 2047;
+static const unsigned long long PARAM_COEFF_VAL = 4;
+static const unsigned long long SHIFT_SCALE_VAL = 10;
+static const unsigned long long ZERO_PLANE_DISTANCE_VAL = 120;
+static const double ZERO_PLANE_PIXEL_SIZE_VAL = 0.10520000010728836;
+static const double EMITTER_DCMOS_DISTANCE_VAL = 7.5;
+
 const unsigned short D2S[] = {
 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
